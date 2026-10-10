@@ -144,13 +144,9 @@ body{font-family:'Cairo',sans-serif;background:#f8fafc}
             <input type="date" id="emp-entry-date" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
           </div>
           <div class="p-3.5 bg-slate-100 rounded-xl border border-slate-200 space-y-2">
-            <label class="block text-xs font-bold text-slate-700">نوع الشقة المستهدفة <span class="text-rose-500">*</span></label>
-            <select id="emp-category" required class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-              <option value="شقة عمال">شقة عمال</option>
-              <option value="شقة مهندسين">شقة مهندسين</option>
-              <option value="شقة مديرين">شقة مديرين</option>
-            </select>
-            <p class="text-[11px] text-slate-500">يتم اقتراح النوع تلقائياً من الوظيفة المكتوبة، ويمكنك تغييره يدوياً.</p>
+            <label class="block text-xs font-bold text-slate-700">الشقة <span class="text-rose-500">*</span></label>
+            <select id="emp-apt" required class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"></select>
+            <p class="text-[11px] text-slate-500">القائمة فيها الشقق المسجلة مع عدد الساكنين. يتم اقتراح شقة مناسبة تلقائياً من الوظيفة، ويمكنك اختيار غيرها.</p>
           </div>
           <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-600/30 transition flex items-center justify-center gap-2">
             <i class="fa-solid fa-user-plus"></i><span>تسكين الموظف وحفظ البيانات</span>
@@ -745,7 +741,7 @@ window.openModule = key => {
 function renderAll() {
   if (!P) return;
   renderStats();
-  if (currentTab === 'allocation') { renderBeds(); refreshRoleSuggestions(); }
+  if (currentTab === 'allocation') { renderBeds(); refreshRoleSuggestions(); renderEmpAptOptions(); }
   if (currentTab === 'report') renderReport();
   if (currentTab === 'settings') { renderAptList(); renderSupervisorOptions(); }
   if (currentTab === 'requests') { renderReqAptOptions(); renderRequests(); }
@@ -859,11 +855,32 @@ window.exportCSV = () => {
 };
 
 /* ---------------------- التسكين ---------------------- */
-let catTouched = false;
-$('emp-category').addEventListener('change', () => { catTouched = true; });
-$('emp-role').addEventListener('input', () => {
-  if (!catTouched && $('emp-role').value.trim()) $('emp-category').value = getCategoryForRole($('emp-role').value);
-});
+let aptTouched = false;
+const freeBedsOf = a => a.totalBeds - occupantsOf(a.id).length;
+function renderEmpAptOptions() {
+  const sel = $('emp-apt'); const cur = sel.value;
+  if (!S.apts.length) { sel.innerHTML = '<option value="">لا توجد شقق — أضفها من إعدادات الشقق</option>'; return; }
+  const groups = ['شقة عمال', 'شقة مهندسين', 'شقة مديرين'];
+  sel.innerHTML = '<option value="" disabled>-- اختر الشقة --</option>' + groups.map(g => {
+    const list = sortedApts().filter(a => a.type === g);
+    if (!list.length) return '';
+    return `<optgroup label="${g}">` + list.map(a => {
+      const free = freeBedsOf(a);
+      return `<option value="${a.id}" ${free <= 0 ? 'disabled' : ''}>${esc(a.number)} — ${a.totalBeds - free}/${a.totalBeds} ${free <= 0 ? '(ممتلئة)' : `(${free} شاغر)`}</option>`;
+    }).join('') + '</optgroup>';
+  }).join('');
+  const curApt = S.apts.find(a => a.id === cur);
+  if (curApt && freeBedsOf(curApt) > 0) sel.value = cur; else { sel.value = ''; aptTouched = false; suggestApt(); }
+}
+function suggestApt() {
+  const role = $('emp-role').value.trim();
+  if (aptTouched || !role) return;
+  const cat = getCategoryForRole(role);
+  const apt = sortedApts().find(a => a.type === cat && freeBedsOf(a) > 0);
+  $('emp-apt').value = apt ? apt.id : '';
+}
+$('emp-apt').addEventListener('change', () => { aptTouched = true; });
+$('emp-role').addEventListener('input', suggestApt);
 // اقتراحات من الوظائف المسجلة سابقاً (للتسهيل فقط)
 function refreshRoleSuggestions() {
   const roles = [...new Set(S.emps.map(e => e.role).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ar'));
@@ -873,22 +890,18 @@ $('add-employee-form').addEventListener('submit', async e => {
   e.preventDefault();
   const name = $('emp-name').value.trim(), role = $('emp-role').value.trim(), entryDate = $('emp-entry-date').value;
   if (!name || !role || !entryDate) return toast('يرجى تعبئة كل الحقول', 'warning');
-  const cat = $('emp-category').value;
-  let target = null, bed = -1;
-  for (const a of sortedApts().filter(x => x.type === cat)) {
-    const occ = occupantsOf(a.id);
-    if (occ.length < a.totalBeds) {
-      const used = occ.map(o => o.bedIndex);
-      for (let i = 1; i <= a.totalBeds; i++) if (!used.includes(i)) { bed = i; break; }
-      if (bed !== -1) { target = a; break; }
-    }
-  }
-  if (!target) return toast(`لا توجد أسرة شاغرة حالياً في (${cat}). أضف شقة جديدة أو زوّد السراير من الإعدادات.`, 'error');
+  const target = S.apts.find(a => a.id === $('emp-apt').value);
+  if (!target) return toast('اختر الشقة أولاً', 'warning');
+  const usedBeds = occupantsOf(target.id).map(o => o.bedIndex);
+  let bed = -1;
+  for (let i = 1; i <= target.totalBeds; i++) if (!usedBeds.includes(i)) { bed = i; break; }
+  if (bed === -1) return toast(`لا توجد أسرة شاغرة في (${target.number}). اختر شقة أخرى أو زوّد السراير من الإعدادات.`, 'error');
+  const cat = target.type;
   try {
     const ref = doc(collection(db, 'employees'));
     await setDoc(ref, { name, role, category: cat, entryDate, aptId: target.id, bedIndex: bed, supervisorUid: target.supervisorUid || '', createdAt: Date.now() });
     $('add-employee-form').reset(); $('emp-entry-date').value = new Date().toISOString().split('T')[0];
-    catTouched = false; $('emp-category').value = 'شقة عمال';
+    aptTouched = false; renderEmpAptOptions();
     toast(`تم تسكين (${name}) في ${target.number} - سرير ${bed}`, 'success');
   } catch (err) { toast(errMsg(err), 'error'); }
 });
