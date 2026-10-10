@@ -114,7 +114,7 @@ body{font-family:'Cairo',sans-serif;background:#f8fafc}
   </div>
 </section>
 
-<main id="module-housing" class="hidden flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+<main id="module-housing" data-module-section class="hidden flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
   <nav id="tabs-nav" class="no-print flex flex-wrap gap-2 mb-6 bg-slate-200/60 p-1.5 rounded-2xl border border-slate-300/60"></nav>
   <div id="toast-container" class="mb-4 space-y-2"></div>
 
@@ -421,8 +421,15 @@ body{font-family:'Cairo',sans-serif;background:#f8fafc}
     </div>
   </div>
 
+</main>
+
+<main id="module-users" data-module-section class="hidden flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <div class="flex items-center gap-3 mb-5">
+    <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-700 text-white flex items-center justify-center text-xl shadow"><i class="fa-solid fa-users-gear"></i></div>
+    <div><h2 class="text-lg font-bold">إدارة المستخدمين</h2><p class="text-xs text-slate-500">إضافة المستخدمين وتحديد صلاحياتهم والأقسام المسموح لهم بدخولها</p></div>
+  </div>
   <!-- المستخدمين -->
-  <div id="tab-users" class="tab-content hidden animate-fade-in">
+  <div class="animate-fade-in">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
       <div class="lg:col-span-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-fit">
         <div class="flex items-center gap-3 pb-3 mb-4 border-b border-slate-100">
@@ -443,12 +450,17 @@ body{font-family:'Cairo',sans-serif;background:#f8fafc}
             <input type="text" id="new-user-pass" required minlength="6" dir="ltr" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl">
           </div>
           <div>
-            <label class="block font-bold mb-1">الصلاحية <span class="text-rose-500">*</span></label>
+            <label class="block font-bold mb-1">مستوى الصلاحية <span class="text-rose-500">*</span></label>
             <select id="new-user-role" required class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl">
               <option value="supervisor">مشرف — يرى شقته فقط (بدون الإيجار) ويرفع الطلبات</option>
               <option value="viewer">مشاهدة فقط — يرى كل التقرير بدون الإيجار</option>
               <option value="admin">مدير النظام — كل الصلاحيات</option>
             </select>
+          </div>
+          <div>
+            <label class="block font-bold mb-1">الأقسام المسموح له بدخولها <span class="text-rose-500">*</span></label>
+            <div id="new-user-modules" class="border border-slate-300 rounded-xl bg-slate-50 p-2 space-y-1"></div>
+            <p id="new-user-modules-note" class="hidden text-[11px] text-slate-500 mt-1">مدير النظام يصل لكل الأقسام تلقائياً.</p>
           </div>
           <div id="new-user-apts-box">
             <label class="block font-bold mb-1">الشقق التي سيشرف عليها <span class="text-rose-500">*</span></label>
@@ -463,7 +475,7 @@ body{font-family:'Cairo',sans-serif;background:#f8fafc}
         <div class="overflow-x-auto custom-scrollbar">
           <table class="w-full text-right text-xs">
             <thead><tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
-              <th class="p-3">الاسم</th><th class="p-3">الإيميل</th><th class="p-3">الصلاحية</th><th class="p-3">الشقق المسندة</th><th class="p-3 text-center">إجراءات</th>
+              <th class="p-3">الاسم</th><th class="p-3">الإيميل</th><th class="p-3">الصلاحية</th><th class="p-3">الأقسام</th><th class="p-3">الشقق المسندة</th><th class="p-3 text-center">إجراءات</th>
             </tr></thead>
             <tbody id="users-table-body" class="divide-y divide-slate-100"></tbody>
           </table>
@@ -514,13 +526,29 @@ body{font-family:'Cairo',sans-serif;background:#f8fafc}
   </form>
 </div>
 
-<div id="modal-assign" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-  <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-    <h3 class="font-bold text-base">شقق المشرف: <span id="assign-user-name"></span></h3>
-    <div id="assign-apts" class="max-h-72 overflow-y-auto custom-scrollbar border border-slate-200 rounded-xl p-2 space-y-1"></div>
+<div id="modal-perms" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+  <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 text-xs max-h-[90vh] overflow-y-auto">
+    <h3 class="font-bold text-base">صلاحيات: <span id="perm-user-name"></span></h3>
+    <div>
+      <label class="block font-bold mb-1">مستوى الصلاحية</label>
+      <select id="perm-role" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl">
+        <option value="supervisor">مشرف — يرى شقته فقط (بدون الإيجار) ويرفع الطلبات</option>
+        <option value="viewer">مشاهدة فقط — يرى كل التقرير بدون الإيجار</option>
+        <option value="admin">مدير النظام — كل الصلاحيات</option>
+      </select>
+    </div>
+    <div>
+      <label class="block font-bold mb-1">الأقسام المسموح له بدخولها</label>
+      <div id="perm-modules" class="border border-slate-200 rounded-xl bg-slate-50 p-2 space-y-1"></div>
+      <p id="perm-modules-note" class="hidden text-[11px] text-slate-500 mt-1">مدير النظام يصل لكل الأقسام تلقائياً.</p>
+    </div>
+    <div id="perm-apts-box">
+      <label class="block font-bold mb-1">الشقق التي يشرف عليها</label>
+      <div id="perm-apts" class="max-h-48 overflow-y-auto custom-scrollbar border border-slate-200 rounded-xl p-2 space-y-1"></div>
+    </div>
     <div class="flex gap-2 justify-end">
-      <button onclick="closeAssign()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-xl text-xs font-bold">إلغاء</button>
-      <button onclick="saveAssign()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold">حفظ</button>
+      <button onclick="closePerms()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-xl font-bold">إلغاء</button>
+      <button onclick="savePerms()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold">حفظ</button>
     </div>
   </div>
 </div>
@@ -571,7 +599,6 @@ const TABS = [
   { key: 'requests',    label: 'طلبات ومصاريف الشقق',     icon: 'fa-receipt',     roles: ['admin','supervisor'] },
   { key: 'documents',   label: 'المستندات والعقود',       icon: 'fa-folder-open', roles: ['admin','supervisor'] },
   { key: 'integration', label: 'التضمين والتصدير',        icon: 'fa-link',        roles: ['admin'] },
-  { key: 'users',       label: 'إدارة المستخدمين',        icon: 'fa-users-gear',  roles: ['admin'] },
 ];
 
 /* ---------------------- أدوات عامة ---------------------- */
@@ -652,6 +679,7 @@ onAuthStateChanged(auth, async user => {
       }
     }
     P = { uid: user.uid, ...snap.data() };
+    P.modules = normModules(P);
   } catch (err) {
     await signOut(auth);
     const box = $('login-error'); box.textContent = 'تعذر تحميل الحساب: ' + errMsg(err); box.classList.remove('hidden');
@@ -670,6 +698,13 @@ function startApp() {
   $('current-user-display').textContent = P.name;
   $('current-user-role').textContent = ROLE_LABEL[P.role] || P.role;
 
+  // مراقبة حساب المستخدم نفسه: أي تغيير في صلاحياته أو حذفه يُطبَّق فوراً
+  unsubs.push(onSnapshot(doc(db, 'users', P.uid), snap => {
+    if (!snap.exists()) { signOut(auth); return; }
+    const d = snap.data();
+    if (d.role !== P.role || JSON.stringify(normModules(d)) !== JSON.stringify(P.modules)) location.reload();
+  }));
+
   if (P.role === 'admin') {
     listen(collection(db, 'apartments'), d => S.apts = d);
     listen(collection(db, 'apartmentsFinance'), d => { S.fin = {}; d.forEach(x => S.fin[x.id] = x.rent); });
@@ -677,14 +712,16 @@ function startApp() {
     listen(collection(db, 'requests'), d => S.reqs = d);
     listen(collection(db, 'users'), d => S.users = d);
     listen(collection(db, 'documents'), d => S.docs = d);
-  } else if (P.role === 'viewer') {
-    listen(collection(db, 'apartments'), d => S.apts = d);
-    listen(collection(db, 'employees'), d => S.emps = d);
-  } else { // supervisor
-    listen(query(collection(db, 'apartments'), where('supervisorUid', '==', P.uid)), d => S.apts = d);
-    listen(query(collection(db, 'employees'), where('supervisorUid', '==', P.uid)), d => S.emps = d);
-    listen(query(collection(db, 'requests'), where('supervisorUid', '==', P.uid)), d => S.reqs = d);
-    listen(query(collection(db, 'documents'), where('supervisorUid', '==', P.uid), where('visibleToSupervisor', '==', true)), d => S.docs = d);
+  } else if (P.modules.includes('housing')) {
+    if (P.role === 'viewer') {
+      listen(collection(db, 'apartments'), d => S.apts = d);
+      listen(collection(db, 'employees'), d => S.emps = d);
+    } else { // supervisor
+      listen(query(collection(db, 'apartments'), where('supervisorUid', '==', P.uid)), d => S.apts = d);
+      listen(query(collection(db, 'employees'), where('supervisorUid', '==', P.uid)), d => S.emps = d);
+      listen(query(collection(db, 'requests'), where('supervisorUid', '==', P.uid)), d => S.reqs = d);
+      listen(query(collection(db, 'documents'), where('supervisorUid', '==', P.uid), where('visibleToSupervisor', '==', true)), d => S.docs = d);
+    }
   }
 
   const allowed = TABS.filter(t => t.roles.includes(P.role));
@@ -709,25 +746,39 @@ window.switchTab = key => {
 /* ---------------------- الشاشة الرئيسية (الأقسام) ---------------------- */
 // لإضافة قسم جديد لاحقاً: أضف سطراً هنا، وغيّر ready إلى true بعد بناء القسم.
 const MODULES = [
-  { key: 'housing',     label: 'الشقق',    icon: 'fa-building',           grad: 'from-sky-500 to-sky-700',       ready: true },
-  { key: 'cars',        label: 'السيارات', icon: 'fa-car',                grad: 'from-indigo-400 to-indigo-600', ready: false },
-  { key: 'maintenance', label: 'الصيانة',  icon: 'fa-screwdriver-wrench', grad: 'from-amber-400 to-amber-600',   ready: false },
+  { key: 'housing',     label: 'الشقق',            icon: 'fa-building',           grad: 'from-sky-500 to-sky-700',       ready: true },
+  { key: 'cars',        label: 'السيارات',         icon: 'fa-car',                grad: 'from-indigo-400 to-indigo-600', ready: false },
+  { key: 'maintenance', label: 'الصيانة',          icon: 'fa-screwdriver-wrench', grad: 'from-amber-400 to-amber-600',   ready: false },
+  { key: 'users',       label: 'إدارة المستخدمين', icon: 'fa-users-gear',         grad: 'from-violet-500 to-violet-700', ready: true, adminOnly: true },
 ];
+// أقسام يمكن منحها للمستخدمين (قسم المستخدمين للمدير فقط)
+const grantableKeys = () => MODULES.filter(m => !m.adminOnly).map(m => m.key);
+function normModules(d) {
+  if (d.role === 'admin') return grantableKeys();
+  return Array.isArray(d.modules) ? d.modules : ['housing'];
+}
+const canSee = m => m.adminOnly ? P.role === 'admin' : (P.role === 'admin' || P.modules.includes(m.key));
+function moduleChecksHtml(checked, disabled) {
+  return MODULES.filter(m => !m.adminOnly).map(m => `<label class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white cursor-pointer text-xs"><input type="checkbox" value="${m.key}" ${checked.includes(m.key) ? 'checked' : ''} ${disabled ? 'disabled' : ''} class="w-4 h-4"><i class="fa-solid ${m.icon} text-slate-400 w-4 text-center"></i><span class="font-bold">${m.label}</span>${m.ready ? '' : '<span class="text-[10px] text-slate-400">(قريباً)</span>'}</label>`).join('');
+}
+let currentModule = null;
 function renderHome() {
   $('home-welcome').textContent = `مرحباً ${P.name}`;
-  $('home-grid').innerHTML = MODULES.map(m => `
+  const visible = MODULES.filter(canSee);
+  $('home-grid').innerHTML = visible.length ? visible.map(m => `
     <button onclick="openModule('${m.key}')" class="group w-28 flex flex-col items-center gap-3 ${m.ready ? '' : 'opacity-50'}">
       <span class="relative w-20 h-20 rounded-2xl bg-gradient-to-br ${m.grad} shadow-lg flex items-center justify-center text-white text-3xl transition ${m.ready ? 'group-hover:-translate-y-1 group-hover:shadow-xl' : ''}">
         <i class="fa-solid ${m.icon}"></i>
         ${m.ready ? '' : '<span class="absolute -top-2 -left-2 bg-slate-700 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">قريباً</span>'}
       </span>
       <span class="text-sm font-bold text-slate-700">${m.label}</span>
-    </button>`).join('');
+    </button>`).join('') : '<p class="text-sm text-slate-500">لا توجد أقسام متاحة لحسابك حالياً. تواصل مع مدير النظام.</p>';
 }
+function hideAllModules() { document.querySelectorAll('[data-module-section]').forEach(el => el.classList.add('hidden')); }
 function showHome() {
-  currentTab = null;
-  renderHome();
-  $('home-screen').classList.remove('hidden'); $('module-housing').classList.add('hidden');
+  currentTab = null; currentModule = null;
+  renderHome(); hideAllModules();
+  $('home-screen').classList.remove('hidden');
   $('btn-home').classList.add('hidden'); $('btn-home').classList.remove('flex');
   $('free-beds-badge').style.display = 'none';
   $('header-sub').textContent = 'شركة أوباك للصناعات الغذائية';
@@ -735,13 +786,16 @@ function showHome() {
 window.goHome = showHome;
 window.openModule = key => {
   const m = MODULES.find(x => x.key === key);
-  if (!m) return;
+  if (!m || !canSee(m)) return;
   if (!m.ready) return toast(`قسم "${m.label}" قيد التجهيز وسيتاح قريباً`, 'info');
-  $('home-screen').classList.add('hidden'); $('module-housing').classList.remove('hidden');
+  hideAllModules(); $('home-screen').classList.add('hidden');
+  currentModule = key;
+  $('module-' + key).classList.remove('hidden');
   $('btn-home').classList.remove('hidden'); $('btn-home').classList.add('flex');
-  $('free-beds-badge').style.display = '';
+  $('free-beds-badge').style.display = key === 'housing' ? '' : 'none';
   $('header-sub').textContent = 'شركة أوباك للصناعات الغذائية — ' + m.label;
-  window.switchTab(TABS.filter(t => t.roles.includes(P.role))[0].key);
+  if (key === 'housing') window.switchTab(TABS.filter(t => t.roles.includes(P.role))[0].key);
+  else { currentTab = null; renderAll(); }
 };
 
 /* ---------------------- العرض ---------------------- */
@@ -753,7 +807,7 @@ function renderAll() {
   if (currentTab === 'settings') { renderAptList(); renderSupervisorOptions(); }
   if (currentTab === 'requests') { renderReqAptOptions(); renderRequests(); }
   if (currentTab === 'documents') { renderDocAptOptions(); renderDocs(); }
-  if (currentTab === 'users') { renderUsers(); renderNewUserApts(); }
+  if (currentModule === 'users') { renderUsers(); renderNewUserModules(); renderNewUserApts(); }
 }
 
 function renderStats() {
@@ -1080,14 +1134,20 @@ window.openAttachment = async id => {
 function renderUsers() {
   $('users-table-body').innerHTML = [...S.users].sort((a, b) => a.name.localeCompare(b.name, 'ar')).map(u => {
     const me = u.id === P.uid;
+    const mods = normModules(u);
+    const modChips = u.role === 'admin' ? '<span class="text-slate-500">كل الأقسام</span>'
+      : (mods.map(k => { const m = MODULES.find(x => x.key === k); return m ? `<span class="inline-block bg-sky-50 text-sky-800 rounded px-1.5 py-0.5 m-0.5">${esc(m.label)}</span>` : ''; }).join('') || '<span class="text-rose-500">لا يوجد</span>');
+    const aptCell = u.role === 'admin' ? '<span class="text-slate-400">كل الشقق</span>'
+      : u.role === 'viewer' ? '<span class="text-slate-400">عرض كل الشقق</span>'
+      : (S.apts.filter(a => a.supervisorUid === u.id).map(a => `<span class="inline-block bg-slate-100 rounded px-1.5 py-0.5 m-0.5">${esc(a.number)}</span>`).join('') || '<span class="text-rose-500">لا توجد شقق</span>');
     return `<tr class="hover:bg-slate-50">
       <td class="p-3 font-bold">${esc(u.name)} ${me ? '<span class="text-[10px] text-slate-400">(أنت)</span>' : ''}</td>
       <td class="p-3 text-slate-500" dir="ltr">${esc(u.email)}</td>
-      <td class="p-3"><select ${me ? 'disabled' : ''} onchange="changeRole('${u.id}', this.value)" class="px-2 py-1 border border-slate-300 rounded-lg text-[11px] bg-white">
-        ${['supervisor','viewer','admin'].map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${ROLE_LABEL[r]}</option>`).join('')}</select></td>
-      <td class="p-3 text-[11px]">${u.role === 'supervisor' ? (S.apts.filter(a => a.supervisorUid === u.id).map(a => `<span class="inline-block bg-slate-100 rounded px-1.5 py-0.5 m-0.5">${esc(a.number)}</span>`).join('') || '<span class="text-rose-500">لا توجد شقق</span>') : '<span class="text-slate-400">كل الشقق</span>'}</td>
+      <td class="p-3"><span class="px-2 py-1 rounded-md text-[10px] font-bold ${u.role === 'admin' ? 'bg-indigo-100 text-indigo-800' : u.role === 'viewer' ? 'bg-slate-100 text-slate-700' : 'bg-emerald-100 text-emerald-800'}">${esc(ROLE_LABEL[u.role] || u.role)}</span></td>
+      <td class="p-3 text-[11px]">${modChips}</td>
+      <td class="p-3 text-[11px]">${mods.includes('housing') || u.role === 'admin' ? aptCell : '<span class="text-slate-400">--</span>'}</td>
       <td class="p-3 text-center whitespace-nowrap">
-        ${u.role === 'supervisor' ? `<button onclick="openAssign('${u.id}')" class="px-2 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded font-bold text-[10px]"><i class="fa-solid fa-building"></i> الشقق</button>` : ''}
+        ${me ? '' : `<button onclick="openPerms('${u.id}')" class="px-2 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded font-bold text-[10px]"><i class="fa-solid fa-user-shield"></i> الصلاحيات</button>`}
         <button onclick="resetPass('${esc(u.email)}')" class="px-2 py-1 bg-brand-50 text-brand-700 hover:bg-brand-100 rounded font-bold text-[10px]">إرسال رابط كلمة سر</button>
         ${me ? '' : `<button onclick="deleteUser('${u.id}')" class="px-2 py-1 text-rose-600 hover:bg-rose-50 rounded font-bold text-[10px]"><i class="fa-solid fa-trash"></i> حذف</button>`}</td></tr>`;
   }).join('');
@@ -1095,32 +1155,26 @@ function renderUsers() {
 $('add-user-form').addEventListener('submit', async e => {
   e.preventDefault();
   const name = $('new-user-name').value.trim(), email = $('new-user-email').value.trim().toLowerCase(), pass = $('new-user-pass').value, role = $('new-user-role').value;
-  const aptIds = role === 'supervisor' ? [...document.querySelectorAll('#new-user-apts input:checked')].map(i => i.value) : [];
-  if (role === 'supervisor' && !aptIds.length) return toast('اختر شقة واحدة على الأقل للمشرف', 'warning');
+  const modules = role === 'admin' ? grantableKeys() : [...document.querySelectorAll('#new-user-modules input:checked')].map(i => i.value);
+  if (!modules.length) return toast('اختر قسماً واحداً على الأقل', 'warning');
+  const needApts = role === 'supervisor' && modules.includes('housing');
+  const aptIds = needApts ? [...document.querySelectorAll('#new-user-apts input:checked')].map(i => i.value) : [];
+  if (needApts && !aptIds.length) return toast('اختر شقة واحدة على الأقل للمشرف', 'warning');
   const btn = $('add-user-btn'); btn.disabled = true;
   try {
     const secApp = getApps().find(a => a.name === 'secondary') || initializeApp(firebaseConfig, 'secondary');
     const secAuth = getAuth(secApp);
     const cred = await createUserWithEmailAndPassword(secAuth, email, pass);
     await signOut(secAuth);
-    await setDoc(doc(db, 'users', cred.user.uid), { name, email, role, createdAt: Date.now() });
+    await setDoc(doc(db, 'users', cred.user.uid), { name, email, role, modules, createdAt: Date.now() });
     if (aptIds.length) await assignApartments(cred.user.uid, name, aptIds);
-    $('add-user-form').reset(); toggleNewUserApts();
+    $('add-user-form').reset(); renderNewUserModules();
     toast(`تمت إضافة (${name}). سلّمه الإيميل وكلمة السر.`, 'success');
   } catch (err) {
     toast(err.code === 'auth/email-already-in-use' ? 'هذا الإيميل مسجل بالفعل في النظام' : err.code === 'auth/weak-password' ? 'كلمة السر ضعيفة (6 أحرف على الأقل)' : errMsg(err), 'error');
   }
   btn.disabled = false;
 });
-window.changeRole = async (id, role) => {
-  const u = S.users.find(x => x.id === id);
-  try {
-    await updateDoc(doc(db, 'users', id), { role });
-    if (role !== 'supervisor' && u) await assignApartments(id, u.name, []);
-    toast('تم تغيير الصلاحية', 'success');
-    if (role === 'supervisor') { toast('حدّد الشقق التي سيشرف عليها', 'info'); openAssign(id); }
-  } catch (err) { toast(errMsg(err), 'error'); }
-};
 window.resetPass = async email => {
   try { await sendPasswordResetEmail(auth, email); toast('تم إرسال رابط تعيين كلمة السر للمستخدم', 'success'); } catch (err) { toast(errMsg(err), 'error'); }
 };
@@ -1194,128 +1248,60 @@ function aptCheckboxesHtml(uid, checkedIds) {
   }).join('');
 }
 function toggleNewUserApts() {
-  $('new-user-apts-box').classList.toggle('hidden', $('new-user-role').value !== 'supervisor');
+  const role = $('new-user-role').value;
+  const boxes = $('new-user-modules').querySelectorAll('input');
+  boxes.forEach(i => { if (role === 'admin') i.checked = true; i.disabled = role === 'admin'; });
+  const mods = [...boxes].filter(i => i.checked).map(i => i.value);
+  $('new-user-modules-note').classList.toggle('hidden', role !== 'admin');
+  $('new-user-apts-box').classList.toggle('hidden', !(role === 'supervisor' && mods.includes('housing')));
 }
 $('new-user-role').addEventListener('change', toggleNewUserApts);
+$('new-user-modules').addEventListener('change', toggleNewUserApts);
+function renderNewUserModules() {
+  const box = $('new-user-modules');
+  const checked = box.children.length ? [...box.querySelectorAll('input:checked')].map(i => i.value) : ['housing'];
+  box.innerHTML = moduleChecksHtml(checked, false);
+  toggleNewUserApts();
+}
 function renderNewUserApts() {
   const box = $('new-user-apts');
   const checked = [...box.querySelectorAll('input:checked')].map(i => i.value);
   box.innerHTML = aptCheckboxesHtml(null, checked);
   toggleNewUserApts();
 }
-let assignUid = null;
-window.openAssign = uid => {
-  const u = S.users.find(x => x.id === uid); if (!u) return;
-  assignUid = uid; $('assign-user-name').textContent = u.name;
-  $('assign-apts').innerHTML = aptCheckboxesHtml(uid);
-  $('modal-assign').classList.remove('hidden');
-};
-window.closeAssign = () => { $('modal-assign').classList.add('hidden'); assignUid = null; };
-window.saveAssign = async () => {
-  const u = S.users.find(x => x.id === assignUid); if (!u) return;
-  const ids = [...document.querySelectorAll('#assign-apts input:checked')].map(i => i.value);
-  try { await assignApartments(u.id, u.name, ids); toast('تم تحديث شقق المشرف', 'success'); window.closeAssign(); }
-  catch (err) { toast(errMsg(err), 'error'); }
-};
-
-/* ---------------------- المستندات والعقود ---------------------- */
-const MAX_DOC = 5 * 1024 * 1024, CHUNK = 900000;
-const fmtSize = b => b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
-function renderDocAptOptions() {
-  const sel = $('doc-apt'); const cur = sel.value;
-  sel.innerHTML = `<option value="">-- مستند عام (بدون شقة) --</option>` + sortedApts().map(a => `<option value="${a.id}">${esc(a.number)}</option>`).join('');
-  sel.value = cur;
+let permUid = null;
+function updatePermsUi() {
+  const role = $('perm-role').value;
+  const boxes = $('perm-modules').querySelectorAll('input');
+  boxes.forEach(i => { if (role === 'admin') i.checked = true; i.disabled = role === 'admin'; });
+  const mods = [...boxes].filter(i => i.checked).map(i => i.value);
+  $('perm-modules-note').classList.toggle('hidden', role !== 'admin');
+  $('perm-apts-box').classList.toggle('hidden', !(role === 'supervisor' && mods.includes('housing')));
 }
-function renderDocs() {
-  const admin = isAdmin();
-  $('doc-form-card').classList.toggle('hidden', !admin);
-  $('doc-list-card').classList.toggle('lg:col-span-12', !admin);
-  $('doc-list-card').classList.toggle('lg:col-span-8', admin);
-  document.querySelectorAll('.doc-admin-col').forEach(el => el.classList.toggle('hidden', !admin));
-  const q = $('doc-search').value.trim().toLowerCase(), fc = $('doc-filter-cat').value;
-  const list = [...S.docs].filter(d => (fc === 'ALL' || d.category === fc) &&
-    (!q || d.title.toLowerCase().includes(q) || (d.fileName || '').toLowerCase().includes(q) || (d.aptNumber || '').toLowerCase().includes(q)))
-    .sort((a, b) => (b.ts || 0) - (a.ts || 0));
-  $('docs-table-body').innerHTML = list.map(d => {
-    const apt = S.apts.find(a => a.id === d.aptId);
-    return `<tr class="hover:bg-slate-50">
-      <td class="p-2.5"><div class="font-bold">${esc(d.title)}</div><div class="text-[11px] text-slate-400" dir="ltr">${esc(d.fileName)}</div></td>
-      <td class="p-2.5">${esc(apt ? apt.number : (d.aptNumber || 'عام'))}</td>
-      <td class="p-2.5"><span class="bg-slate-100 px-2 py-0.5 rounded">${esc(d.category)}</span></td>
-      <td class="p-2.5 text-slate-500">${fmtSize(d.size || 0)}</td>
-      <td class="p-2.5 text-slate-500">${esc(d.date)}</td>
-      ${admin ? `<td class="p-2.5"><input type="checkbox" ${d.visibleToSupervisor ? 'checked' : ''} ${d.supervisorUid ? '' : 'disabled title="الشقة بدون مشرف"'} onchange="toggleDocVisible('${d.id}', this.checked)" class="w-4 h-4"></td>` : ''}
-      <td class="p-2.5 text-center whitespace-nowrap">
-        <button onclick="openDoc('${d.id}', false)" class="px-2 py-1 bg-sky-50 text-sky-700 hover:bg-sky-100 rounded font-bold text-[10px]"><i class="fa-solid fa-eye"></i> عرض</button>
-        <button onclick="openDoc('${d.id}', true)" class="px-2 py-1 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded font-bold text-[10px]"><i class="fa-solid fa-download"></i> تنزيل</button>
-        ${admin ? `<button onclick="deleteDocFile('${d.id}')" class="px-2 py-1 text-rose-600 hover:bg-rose-50 rounded text-[10px]"><i class="fa-solid fa-trash"></i></button>` : ''}</td></tr>`;
-  }).join('') || `<tr><td colspan="7" class="p-6 text-center text-slate-400">لا توجد مستندات</td></tr>`;
-}
-$('doc-search').addEventListener('input', renderDocs);
-$('doc-filter-cat').addEventListener('change', renderDocs);
-
-$('doc-form').addEventListener('submit', async e => {
-  e.preventDefault();
-  const file = $('doc-file').files[0];
-  if (!file) return toast('اختر الملف أولاً', 'warning');
-  if (file.size > MAX_DOC) return toast('الملف أكبر من 5 ميجابايت. اضغطه أو قسّمه ثم ارفعه.', 'warning');
-  const btn = $('doc-submit-btn'); btn.disabled = true;
-  const label = btn.innerHTML;
+$('modal-perms').addEventListener('change', updatePermsUi);
+window.openPerms = uid => {
+  const u = S.users.find(x => x.id === uid); if (!u || uid === P.uid) return;
+  permUid = uid; $('perm-user-name').textContent = u.name;
+  $('perm-role').value = u.role;
+  $('perm-modules').innerHTML = moduleChecksHtml(normModules(u), false);
+  $('perm-apts').innerHTML = aptCheckboxesHtml(uid);
+  updatePermsUi();
+  $('modal-perms').classList.remove('hidden');
+};
+window.closePerms = () => { $('modal-perms').classList.add('hidden'); permUid = null; };
+window.savePerms = async () => {
+  const u = S.users.find(x => x.id === permUid); if (!u) return;
+  const role = $('perm-role').value;
+  const modules = role === 'admin' ? grantableKeys() : [...document.querySelectorAll('#perm-modules input:checked')].map(i => i.value);
+  if (!modules.length) return toast('اختر قسماً واحداً على الأقل', 'warning');
+  const useApts = role === 'supervisor' && modules.includes('housing');
+  const ids = useApts ? [...document.querySelectorAll('#perm-apts input:checked')].map(i => i.value) : [];
+  if (useApts && !ids.length) return toast('اختر شقة واحدة على الأقل للمشرف', 'warning');
   try {
-    const dataUrl = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(new Error('تعذر قراءة الملف')); r.readAsDataURL(file); });
-    const b64 = dataUrl.slice(dataUrl.indexOf(',') + 1);
-    const n = Math.max(1, Math.ceil(b64.length / CHUNK));
-    const ref = doc(collection(db, 'documents'));
-    for (let i = 0; i < n; i++) {
-      btn.textContent = `جارٍ الرفع ${i + 1} / ${n}`;
-      await setDoc(doc(db, 'documents', ref.id, 'chunks', String(i).padStart(3, '0')), { n: i, data: b64.slice(i * CHUNK, (i + 1) * CHUNK) });
-    }
-    const apt = S.apts.find(a => a.id === $('doc-apt').value);
-    await setDoc(ref, {
-      title: $('doc-title').value.trim(), category: $('doc-cat').value,
-      aptId: apt ? apt.id : '', aptNumber: apt ? apt.number : '',
-      supervisorUid: apt ? (apt.supervisorUid || '') : '',
-      visibleToSupervisor: !!(apt && apt.supervisorUid && $('doc-visible').checked),
-      fileName: file.name, mime: file.type || 'application/octet-stream', size: file.size, chunks: n,
-      date: new Date().toISOString().split('T')[0], ts: Date.now(), uploadedBy: P.name
-    });
-    $('doc-form').reset();
-    toast('تم رفع المستند بنجاح', 'success');
-  } catch (err) { toast('فشل الرفع: ' + errMsg(err), 'error'); }
-  btn.disabled = false; btn.innerHTML = label;
-});
-
-async function fetchDocBlob(d) {
-  const snap = await getDocs(collection(db, 'documents', d.id, 'chunks'));
-  const b64 = snap.docs.map(x => x.data()).sort((a, b) => a.n - b.n).map(x => x.data).join('');
-  const bin = atob(b64), bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  return new Blob([bytes], { type: d.mime });
-}
-window.openDoc = async (id, download) => {
-  const d = S.docs.find(x => x.id === id); if (!d) return;
-  const previewable = !download && (d.mime === 'application/pdf' || d.mime.startsWith('image/'));
-  const w = previewable ? window.open('', '_blank') : null;
-  try {
-    toast('جارٍ تحميل الملف...', 'info');
-    const url = URL.createObjectURL(await fetchDocBlob(d));
-    if (previewable) { if (w) w.location = url; else location.href = url; }
-    else { const a = document.createElement('a'); a.href = url; a.download = d.fileName; a.click(); }
-  } catch (err) { if (w) w.close(); toast('تعذر تحميل الملف: ' + errMsg(err), 'error'); }
-};
-window.toggleDocVisible = async (id, v) => {
-  try { await updateDoc(doc(db, 'documents', id), { visibleToSupervisor: v }); toast(v ? 'أصبح المستند ظاهراً للمشرف' : 'تم إخفاء المستند عن المشرف', 'info'); }
-  catch (err) { toast(errMsg(err), 'error'); }
-};
-window.deleteDocFile = id => {
-  const d = S.docs.find(x => x.id === id); if (!d) return;
-  askConfirm('حذف مستند', `سيتم حذف (${d.title}) نهائياً.`, async () => {
-    try {
-      const snap = await getDocs(collection(db, 'documents', id, 'chunks'));
-      const b = writeBatch(db); snap.docs.forEach(x => b.delete(x.ref)); b.delete(doc(db, 'documents', id)); await b.commit();
-      toast('تم حذف المستند', 'info');
-    } catch (err) { toast(errMsg(err), 'error'); }
-  });
+    await updateDoc(doc(db, 'users', u.id), { role, modules });
+    await assignApartments(u.id, u.name, ids);
+    toast('تم تحديث صلاحيات المستخدم', 'success'); window.closePerms();
+  } catch (err) { toast(errMsg(err), 'error'); }
 };
 
 window.copyIframeCode = () => {
