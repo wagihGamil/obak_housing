@@ -487,6 +487,33 @@ body{font-family:'Cairo',sans-serif;background:#f8fafc}
   </div>
 </div>
 
+<div id="modal-edit-emp" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+  <form id="edit-emp-form" class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-3.5 text-xs">
+    <h3 class="font-bold text-base flex items-center gap-2"><i class="fa-solid fa-pen text-brand-600"></i> تعديل بيانات الموظف</h3>
+    <div>
+      <label class="block font-bold mb-1">الاسم <span class="text-rose-500">*</span></label>
+      <input type="text" id="edit-emp-name" required class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl">
+    </div>
+    <div>
+      <label class="block font-bold mb-1">الوظيفة <span class="text-rose-500">*</span></label>
+      <input type="text" id="edit-emp-role" required list="emp-role-list" autocomplete="off" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl">
+    </div>
+    <div>
+      <label class="block font-bold mb-1">تاريخ الدخول <span class="text-rose-500">*</span></label>
+      <input type="date" id="edit-emp-date" required class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl">
+    </div>
+    <div>
+      <label class="block font-bold mb-1">الشقة (لنقل الموظف لشقة أخرى)</label>
+      <select id="edit-emp-apt" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl"></select>
+      <p class="text-[11px] text-slate-500 mt-1">عند اختيار شقة مختلفة يُنقل الموظف لأول سرير شاغر فيها.</p>
+    </div>
+    <div class="flex gap-2 justify-end pt-1">
+      <button type="button" onclick="closeEditEmp()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-xl font-bold">إلغاء</button>
+      <button type="submit" id="edit-emp-save" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold">حفظ التعديلات</button>
+    </div>
+  </form>
+</div>
+
 <div id="modal-assign" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
   <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
     <h3 class="font-bold text-base">شقق المشرف: <span id="assign-user-name"></span></h3>
@@ -748,7 +775,7 @@ function renderBeds() {
     for (let i = 1; i <= a.totalBeds; i++) {
       const o = occ.find(x => x.bedIndex === i);
       slots += o
-        ? `<div class="p-2 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-between text-xs"><div class="flex items-center gap-2 overflow-hidden"><i class="fa-solid fa-bed text-emerald-600"></i><span class="font-bold truncate">${esc(o.name)}</span></div><span class="text-[10px] bg-emerald-200/80 text-emerald-800 px-2 py-0.5 rounded-md shrink-0">${esc(o.role)}</span></div>`
+        ? `<div class="p-2 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-between text-xs"><div class="flex items-center gap-2 overflow-hidden"><i class="fa-solid fa-bed text-emerald-600"></i><span class="font-bold truncate">${esc(o.name)}</span></div><div class="flex items-center gap-1 shrink-0"><span class="text-[10px] bg-emerald-200/80 text-emerald-800 px-2 py-0.5 rounded-md">${esc(o.role)}</span><button onclick="openEditEmp('${o.id}')" class="text-brand-700 hover:bg-white rounded p-1" title="تعديل"><i class="fa-solid fa-pen text-[10px]"></i></button></div></div>`
         : `<div class="p-2 bg-white border border-dashed border-slate-300 rounded-lg flex items-center gap-2 text-xs text-slate-400"><i class="fa-solid fa-bed text-slate-300"></i><span>سرير ${i} (شاغر)</span></div>`;
     }
     return `<div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
@@ -808,7 +835,7 @@ function renderReport() {
       <td class="p-3.5"><span class="bg-slate-100 px-2 py-0.5 rounded">${esc(e.role)}</span></td>
       <td class="p-3.5">${esc(e.entryDate)}</td>
       ${tail(i)}
-      ${admin ? `<td class="p-3.5 text-center no-print"><button onclick="evictEmp('${e.id}')" class="px-2 py-1 text-rose-600 hover:bg-rose-50 rounded-lg font-bold"><i class="fa-solid fa-user-xmark"></i> إخلاء</button></td>` : ''}</tr>`).join('');
+      ${admin ? `<td class="p-3.5 text-center no-print"><button onclick="openEditEmp('${e.id}')" class="px-2 py-1 text-brand-700 hover:bg-brand-50 rounded-lg font-bold"><i class="fa-solid fa-pen"></i> تعديل</button> <button onclick="evictEmp('${e.id}')" class="px-2 py-1 text-rose-600 hover:bg-rose-50 rounded-lg font-bold"><i class="fa-solid fa-user-xmark"></i> إخلاء</button></td>` : ''}</tr>`).join('');
   }).join('');
   $('report-table-body').innerHTML = html || `<tr><td colspan="10" class="p-6 text-center text-slate-400">لا توجد بيانات</td></tr>`;
   $('report-total-records').textContent = `إجمالي الساكنين: ${people} موظف`;
@@ -1080,6 +1107,43 @@ window.deleteUser = id => {
     try { await deleteDoc(doc(db, 'users', id)); await assignApartments(id, u.name, []); toast('تم حذف المستخدم', 'info'); } catch (err) { toast(errMsg(err), 'error'); }
   });
 };
+
+/* ---------------------- تعديل بيانات موظف ---------------------- */
+let editEmpId = null;
+window.openEditEmp = id => {
+  const e = S.emps.find(x => x.id === id); if (!e) return;
+  editEmpId = id;
+  $('edit-emp-name').value = e.name; $('edit-emp-role').value = e.role; $('edit-emp-date').value = e.entryDate;
+  $('edit-emp-apt').innerHTML = sortedApts().map(a => {
+    const occ = occupantsOf(a.id).length, full = occ >= a.totalBeds && a.id !== e.aptId;
+    return `<option value="${a.id}" ${a.id === e.aptId ? 'selected' : ''} ${full ? 'disabled' : ''}>${esc(a.number)} — ${esc(a.type)} (${occ}/${a.totalBeds}${full ? ' ممتلئة' : ''})</option>`;
+  }).join('');
+  $('modal-edit-emp').classList.remove('hidden');
+};
+window.closeEditEmp = () => { $('modal-edit-emp').classList.add('hidden'); editEmpId = null; };
+$('edit-emp-form').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const e = S.emps.find(x => x.id === editEmpId); if (!e) return;
+  const upd = { name: $('edit-emp-name').value.trim(), role: $('edit-emp-role').value.trim(), entryDate: $('edit-emp-date').value };
+  if (!upd.name || !upd.role || !upd.entryDate) return toast('يرجى تعبئة كل الحقول', 'warning');
+  const newAptId = $('edit-emp-apt').value;
+  if (newAptId !== e.aptId) {
+    const apt = S.apts.find(a => a.id === newAptId);
+    if (!apt) return toast('الشقة غير موجودة', 'error');
+    const used = occupantsOf(apt.id).map(o => o.bedIndex);
+    let bed = -1;
+    for (let i = 1; i <= apt.totalBeds; i++) if (!used.includes(i)) { bed = i; break; }
+    if (bed === -1) return toast('لا توجد أسرة شاغرة في هذه الشقة', 'error');
+    Object.assign(upd, { aptId: apt.id, bedIndex: bed, category: apt.type, supervisorUid: apt.supervisorUid || '' });
+  }
+  const btn = $('edit-emp-save'); btn.disabled = true;
+  try {
+    await updateDoc(doc(db, 'employees', e.id), upd);
+    toast(newAptId !== e.aptId ? 'تم حفظ البيانات ونقل الموظف' : 'تم حفظ التعديلات', 'success');
+    window.closeEditEmp();
+  } catch (err) { toast(errMsg(err), 'error'); }
+  btn.disabled = false;
+});
 
 /* ---------------------- إسناد الشقق للمشرفين ---------------------- */
 async function assignApartments(uid, name, aptIds) {
