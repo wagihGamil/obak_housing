@@ -1,1538 +1,945 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منظومة إدارة وتنسيق إسكان الشركة</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts Cairo -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        cairo: ['Cairo', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            200: '#bae6fd',
-                            300: '#7dd3fc',
-                            400: '#38bdf8',
-                            500: '#0284c7',
-                            600: '#0369a1',
-                            700: '#0369a1',
-                            800: '#075985',
-                            900: '#0c4a6e',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body {
-            font-family: 'Cairo', sans-serif;
-            background-color: #f8fafc;
-        }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-        }
-        .tab-btn.active {
-            background-color: #0284c7;
-            color: #ffffff;
-            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(6px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in {
-            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        /* Print formatting */
-        @media print {
-            header, .no-print, nav, button, .tab-btn {
-                display: none !important;
-            }
-            body {
-                background: white !important;
-                color: black !important;
-            }
-            .tab-content {
-                display: block !important;
-            }
-            #tab-report {
-                display: block !important;
-            }
-            .shadow-sm, .shadow-lg {
-                box-shadow: none !important;
-            }
-            .border {
-                border-color: #ccc !important;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>منظومة إدارة وتنسيق إسكان الشركة</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+tailwind.config = { theme: { extend: { fontFamily: { cairo: ['Cairo','sans-serif'] },
+  colors: { brand: { 50:'#f0f9ff',100:'#e0f2fe',200:'#bae6fd',300:'#7dd3fc',400:'#38bdf8',500:'#0284c7',600:'#0369a1',700:'#075985',800:'#075985',900:'#0c4a6e' } } } } }
+</script>
+<style>
+body{font-family:'Cairo',sans-serif;background:#f8fafc}
+.tab-btn.active{background:#0284c7;color:#fff;box-shadow:0 4px 12px rgba(2,132,199,.25)}
+.custom-scrollbar::-webkit-scrollbar{width:6px;height:6px}
+.custom-scrollbar::-webkit-scrollbar-track{background:#f1f5f9}
+.custom-scrollbar::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.animate-fade-in{animation:fadeIn .3s ease forwards}
+@media print{
+  header,.no-print,nav,button,.tab-btn{display:none!important}
+  body{background:#fff!important}
+  .tab-content{display:none!important}
+  #tab-report{display:block!important}
+}
+</style>
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col">
 
-    <!-- Top Navigation Header -->
-    <header class="bg-gradient-to-r from-slate-900 via-slate-800 to-brand-900 text-white shadow-lg sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <!-- Logo & Title -->
-                <div class="flex items-center space-x-3 space-x-reverse">
-                    <div class="w-12 h-12 bg-brand-500/20 border border-brand-400/30 rounded-2xl flex items-center justify-center text-brand-400 shadow-inner">
-                        <i class="fa-solid font-bold fa-building-user text-2xl"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-xl font-bold tracking-wide">منظومة إسكان السكن الإداري</h1>
-                        <p class="text-xs text-slate-300">نظام تنسيق وتوزيع شقق وإسكان الموظفين والمهندسين والعمال</p>
-                    </div>
-                </div>
-
-                <!-- Current User Context & Role Switcher -->
-                <div class="flex items-center space-x-4 space-x-reverse">
-                    <div class="bg-slate-800/80 border border-slate-700/60 rounded-xl px-3 py-2 flex items-center gap-3">
-                        <div class="text-right text-xs">
-                            <span class="block text-slate-400 font-medium">المستخدم الحالي:</span>
-                            <span id="current-user-display" class="font-bold text-brand-300">مدير النظام (أدمن)</span>
-                        </div>
-                        <button onclick="openUserModal()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs px-2.5 py-1.5 rounded-lg transition border border-slate-600 flex items-center gap-1.5">
-                            <i class="fa-solid fa-user-gear"></i>
-                            <span>تغيير</span>
-                        </button>
-                    </div>
-
-                    <!-- Occupancy Quick Badge -->
-                    <div class="hidden md:flex flex-col text-left text-xs bg-slate-800/50 border border-slate-700/50 px-3 py-1.5 rounded-xl">
-                        <span class="text-slate-400">إجمالي الأسرة الشاغرة:</span>
-                        <span id="global-free-beds" class="font-extrabold text-emerald-400 text-sm">-- سرير</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Container -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-
-        <!-- Navigation Tabs -->
-        <div class="no-print flex flex-wrap gap-2 mb-6 bg-slate-200/60 p-1.5 rounded-2xl border border-slate-300/60 shadow-sm">
-            <button onclick="switchTab('allocation')" id="tab-btn-allocation" class="tab-btn active flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 flex items-center justify-center gap-2">
-                <i class="fa-solid fa-user-plus"></i>
-                <span>التنسيق وإدخال الموظفين</span>
-            </button>
-            <button onclick="switchTab('report')" id="tab-btn-report" class="tab-btn flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-white/60 transition-all duration-200 flex items-center justify-center gap-2">
-                <i class="fa-solid fa-table-cells"></i>
-                <span>تقرير توزيع الشقق</span>
-            </button>
-            <button onclick="switchTab('settings')" id="tab-btn-settings" class="tab-btn flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-white/60 transition-all duration-200 flex items-center justify-center gap-2">
-                <i class="fa-solid fa-sliders"></i>
-                <span>إعدادات الشقق</span>
-            </button>
-            <button onclick="switchTab('requests')" id="tab-btn-requests" class="tab-btn flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-white/60 transition-all duration-200 flex items-center justify-center gap-2">
-                <i class="fa-solid fa-receipt"></i>
-                <span>طلبات ومصاريف الشقق</span>
-            </button>
-            <button onclick="switchTab('integration')" id="tab-btn-integration" class="tab-btn flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-white/60 transition-all duration-200 flex items-center justify-center gap-2">
-                <i class="fa-solid fa-link text-amber-500"></i>
-                <span>ربط جوجل شيت و Google Sites</span>
-            </button>
-            <button onclick="switchTab('users')" id="tab-btn-users" class="tab-btn flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-white/60 transition-all duration-200 flex items-center justify-center gap-2">
-                <i class="fa-solid fa-users-gear text-indigo-600"></i>
-                <span>إدارة المستخدمين</span>
-            </button>
-        </div>
-
-        <!-- Notification Banner Container -->
-        <div id="toast-container" class="mb-4"></div>
-
-        <!-- TAB 1: Allocation & Employee Entry -->
-        <div id="tab-allocation" class="tab-content animate-fade-in">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <!-- Form Box -->
-                <div class="lg:col-span-5 bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-                    <div class="flex items-center gap-3 pb-4 mb-5 border-b border-slate-100">
-                        <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center text-lg font-bold">
-                            <i class="fa-solid fa-user-check"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-800">تسجيل موظف جديد للتسكين</h2>
-                            <p class="text-xs text-slate-500">يتم توجيه الموظف تلقائياً للشقة المناسبة حسب الوظيفة</p>
-                        </div>
-                    </div>
-
-                    <form id="add-employee-form" onsubmit="handleEmployeeSubmit(event)" class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">اسم الموظف رباعي <span class="text-rose-500">*</span></label>
-                            <input type="text" id="emp-name" required placeholder="مثال: أحمد محمد محمود علي" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">الوظيفة / المسمى الوظيفي <span class="text-rose-500">*</span></label>
-                            <select id="emp-role" onchange="updateHousingCategoryPreview()" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition">
-                                <option value="" disabled selected>-- اختر الوظيفة من القائمة --</option>
-                                <optgroup label="فئة العمال والفنيين">
-                                    <option value="عامل">عامل تنفيذ</option>
-                                    <option value="فني كهرباء">فني كهرباء</option>
-                                    <option value="فني ميكانيكا">فني ميكانيكا</option>
-                                    <option value="سائق">سائق معدات / سيارات</option>
-                                    <option value="أمن">حارس / أمن</option>
-                                </optgroup>
-                                <optgroup label="فئة المهندسين والإشراف">
-                                    <option value="مهندس موقع">مهندس موقع</option>
-                                    <option value="مهندس مكتب فني">مهندس مكتب فني</option>
-                                    <option value="محاسب موقع">محاسب موقع</option>
-                                    <option value="مشرف تنفيذ">مشرف تنفيذ</option>
-                                    <option value="أخصائي جودة">أخصائي جودة والسلامة</option>
-                                </optgroup>
-                                <optgroup label="فئة المديرين والقيادات">
-                                    <option value="مدير مشروع">مدير مشروع</option>
-                                    <option value="مدير تنفيذي">مدير تنفيذي</option>
-                                    <option value="رئيس قطاع">رئيس قطاع</option>
-                                    <option value="مستشار فنّي">مستشار فنّي</option>
-                                </optgroup>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">تاريخ الدخول / التسكين <span class="text-rose-500">*</span></label>
-                            <input type="date" id="emp-entry-date" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition">
-                        </div>
-
-                        <!-- Auto Allocation Category Badge Preview -->
-                        <div id="housing-preview-box" class="p-3.5 bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-between">
-                            <span class="text-xs text-slate-600 font-semibold">نوع الشقة المستهدفة تلقائياً:</span>
-                            <span id="housing-type-tag" class="px-3 py-1 rounded-full text-xs font-bold bg-slate-200 text-slate-700">لم يحدد</span>
-                        </div>
-
-                        <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-600/30 transition flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-user-plus"></i>
-                            <span>تسكين الموظف وحفظ البيانات</span>
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Housing Availability Stats & Live Status -->
-                <div class="lg:col-span-7 space-y-6">
-                    <!-- Quick Stats Cards -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-                            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
-                                <i class="fa-solid fa-users"></i>
-                            </div>
-                            <div>
-                                <span class="text-xs text-slate-500 block">شقق العمال</span>
-                                <span id="stat-workers-avail" class="text-lg font-bold text-slate-800">--</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-                            <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl">
-                                <i class="fa-solid fa-user-gear"></i>
-                            </div>
-                            <div>
-                                <span class="text-xs text-slate-500 block">شقق المهندسين</span>
-                                <span id="stat-engineers-avail" class="text-lg font-bold text-slate-800">--</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-                            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
-                                <i class="fa-solid fa-user-tie"></i>
-                            </div>
-                            <div>
-                                <span class="text-xs text-slate-500 block">شقق المديرين</span>
-                                <span id="stat-managers-avail" class="text-lg font-bold text-slate-800">--</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Live Bed Allocation Visual Grid -->
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                                <i class="fa-solid fa-bed text-brand-500"></i>
-                                <span>حالة الشقق والسراير الحالية</span>
-                            </h3>
-                            <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg">تحديث حي</span>
-                        </div>
-
-                        <div id="beds-visual-container" class="space-y-4 max-h-[380px] overflow-y-auto custom-scrollbar pr-1">
-                            <!-- Populated dynamically via JS -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 2: Full Housing Report -->
-        <div id="tab-report" class="tab-content hidden animate-fade-in">
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <!-- Search & Filters Header -->
-                <div class="p-5 border-b border-slate-200 bg-slate-50/70 flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <div>
-                        <h2 class="text-base font-bold text-slate-800">تقرير توزيعة الشقق والإسكان</h2>
-                        <p class="text-xs text-slate-500">يعرض كافة بيانات الشقق والساكنين وفقاً لنفس هيكل الشيت المعتمد</p>
-                    </div>
-
-                    <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-                        <!-- Search Box -->
-                        <div class="relative flex-1 sm:w-64">
-                            <i class="fa-solid fa-magnifying-glass absolute right-3 top-3 text-slate-400 text-xs"></i>
-                            <input type="text" id="report-search" oninput="renderReportTable()" placeholder="بحث باسم الموظف أو رقم الشقة..." class="w-full pr-9 pl-3 py-2 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
-                        </div>
-
-                        <!-- Type Filter -->
-                        <select id="report-filter-type" onchange="renderReportTable()" class="px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
-                            <option value="ALL">جميع أنواع الشقق</option>
-                            <option value="شقة عمال">شقق العمال</option>
-                            <option value="شقة مهندسين">شقق المهندسين</option>
-                            <option value="شقة مديرين">شقق المديرين</option>
-                        </select>
-
-                        <!-- Print / Export Button -->
-                        <button onclick="window.print()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
-                            <i class="fa-solid fa-print"></i>
-                            <span>طباعة التقرير</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Main Data Table matching sheet specs -->
-                <div class="overflow-x-auto custom-scrollbar">
-                    <table class="w-full text-right text-xs">
-                        <thead>
-                            <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 uppercase tracking-wider">
-                                <th class="p-3.5 whitespace-nowrap">رقم الشقة</th>
-                                <th class="p-3.5 whitespace-nowrap">نوع الشقة + مكانها</th>
-                                <th class="p-3.5 whitespace-nowrap text-center">عدد السراير</th>
-                                <th class="p-3.5 whitespace-nowrap">الاسم</th>
-                                <th class="p-3.5 whitespace-nowrap">الوظيفة</th>
-                                <th id="th-rent-col" class="p-3.5 whitespace-nowrap">قيمة الإيجار</th>
-                                <th class="p-3.5 whitespace-nowrap">نهاية العقد</th>
-                                <th class="p-3.5 whitespace-nowrap">المشرف المسؤول</th>
-                                <th class="p-3.5 whitespace-nowrap text-center no-print">الإجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody id="report-table-body" class="divide-y divide-slate-100 text-slate-700">
-                            <!-- Populated via JS -->
-                        </tbody>
-                    </table>
-                </div>
-                
-                <!-- Table Footer Stats Summary -->
-                <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap justify-between items-center text-xs font-bold text-slate-600">
-                    <span id="report-total-records">إجمالي الساكنين المسجلين: 0</span>
-                    <span id="report-total-rent" class="text-brand-700">إجمالي قيمة الإيجار الشهري: 0 ج.م</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 3: Apartment Settings -->
-        <div id="tab-settings" class="tab-content hidden animate-fade-in">
-            <!-- Warning Alert for Supervisors -->
-            <div id="supervisor-settings-lock" class="hidden mb-4 p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl flex items-center gap-3">
-                <i class="fa-solid fa-lock text-xl text-amber-600"></i>
-                <div class="text-xs">
-                    <span class="font-bold block">ملاحظة الصلاحيات:</span>
-                    <span>أنت متصل الآن بحساب مشرف. تعديل وحذف الشقق والبيانات المالية متاح فقط لمسؤول النظام (Admin).</span>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <!-- Add / Edit Apartment Form -->
-                <div id="apt-form-card" class="lg:col-span-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-fit">
-                    <div class="flex items-center gap-3 pb-3 mb-4 border-b border-slate-100">
-                        <div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold">
-                            <i class="fa-solid fa-building-circle-check"></i>
-                        </div>
-                        <div>
-                            <h3 id="apt-form-title" class="text-sm font-bold text-slate-800">إضافة شقة جديدة</h3>
-                            <p class="text-xs text-slate-500">إدخال شقة جديدة بالنظام وتحديد طاقتها الاستيعابية</p>
-                        </div>
-                    </div>
-
-                    <form id="apt-manage-form" onsubmit="handleApartmentSave(event)" class="space-y-3.5 text-xs">
-                        <input type="hidden" id="apt-id-hidden" value="">
-
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">كود / رقم الشقة <span class="text-rose-500">*</span></label>
-                            <input type="text" id="apt-number" required placeholder="مثال: شقة 105 - عمائر الأمل" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500">
-                        </div>
-
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">نوع الشقة (الفئة المستهدفة) <span class="text-rose-500">*</span></label>
-                            <select id="apt-type" required class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500">
-                                <option value="شقة عمال">شقة عمال</option>
-                                <option value="شقة مهندسين">شقة مهندسين</option>
-                                <option value="شقة مديرين">شقة مديرين</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">الموقع / العنوان التفصيلي</label>
-                            <input type="text" id="apt-location" placeholder="مثال: التجمع الخامس - المنطقة 3" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500">
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block font-bold text-slate-700 mb-1">عدد السراير الكلي <span class="text-rose-500">*</span></label>
-                                <input type="number" id="apt-beds" min="1" max="20" required value="4" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500">
-                            </div>
-                            <div>
-                                <label class="block font-bold text-slate-700 mb-1">قيمة الإيجار (ج.م) <span class="text-rose-500">*</span></label>
-                                <input type="number" id="apt-rent" min="0" step="100" required value="8000" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block font-bold text-slate-700 mb-1">تاريخ نهاية العقد</label>
-                                <input type="date" id="apt-contract-end" required class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500">
-                            </div>
-                            <div>
-                                <label class="block font-bold text-slate-700 mb-1">المشرف المسؤول</label>
-                                <input type="text" id="apt-supervisor" placeholder="مثال: م. أسامة أحمد" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500">
-                            </div>
-                        </div>
-
-                        <div class="pt-2 flex gap-2">
-                            <button type="submit" id="btn-save-apt" class="flex-1 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition">
-                                <i class="fa-solid fa-floppy-disk ml-1"></i> حفظ الشقة
-                            </button>
-                            <button type="button" onclick="resetAptForm()" class="px-3 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition">
-                                إغلاق
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Apartments Registered List -->
-                <div class="lg:col-span-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
-                        <h3 class="text-sm font-bold text-slate-800">قائمة الشقق المسجلة بالنظام</h3>
-                        <span id="apt-count-badge" class="text-xs bg-brand-50 text-brand-700 font-bold px-2.5 py-1 rounded-lg">-- شقق</span>
-                    </div>
-
-                    <div id="apartments-list-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[520px] overflow-y-auto custom-scrollbar pr-1">
-                        <!-- Populated via JS -->
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 4: Apartment Requests & Expenses -->
-        <div id="tab-requests" class="tab-content hidden animate-fade-in">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <!-- Summary KPI Cards -->
-                <div class="lg:col-span-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg font-bold">
-                            <i class="fa-solid fa-clock-rotate-left"></i>
-                        </div>
-                        <div>
-                            <span class="text-xs text-slate-500 block">طلبات قيد الانتظار</span>
-                            <span id="kpi-pending-reqs" class="text-lg font-bold text-slate-800">0</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg font-bold">
-                            <i class="fa-solid fa-circle-check"></i>
-                        </div>
-                        <div>
-                            <span class="text-xs text-slate-500 block">طلبات معتمدة</span>
-                            <span id="kpi-approved-reqs" class="text-lg font-bold text-slate-800">0</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg font-bold">
-                            <i class="fa-solid fa-screwdriver-wrench"></i>
-                        </div>
-                        <div>
-                            <span class="text-xs text-slate-500 block">إجمالي مصاريف الصيانة</span>
-                            <span id="kpi-maintenance-sum" class="text-lg font-bold text-slate-800">0 ج.م</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-lg font-bold">
-                            <i class="fa-solid fa-bolt"></i>
-                        </div>
-                        <div>
-                            <span class="text-xs text-slate-500 block">مصاريف الفواتير والمياه</span>
-                            <span id="kpi-utilities-sum" class="text-lg font-bold text-slate-800">0 ج.م</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Create New Request Form -->
-                <div class="lg:col-span-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <h3 class="text-sm font-bold text-slate-800 pb-3 mb-4 border-b border-slate-100 flex items-center gap-2">
-                        <i class="fa-solid fa-file-invoice-dollar text-brand-600"></i>
-                        <span>تسجيل طلب صيانة / مصروفات</span>
-                    </h3>
-
-                    <form id="expense-form" onsubmit="handleRequestSubmit(event)" class="space-y-3.5 text-xs">
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">الشقة المعنية <span class="text-rose-500">*</span></label>
-                            <select id="req-apt-id" required class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500">
-                                <!-- Populated dynamically -->
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">نوع البند / الطلب <span class="text-rose-500">*</span></label>
-                            <select id="req-type" required class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500">
-                                <option value="صيانة سباكة/كهرباء">صيانة سباكة / كهرباء</option>
-                                <option value="شراء أثاث/أجهزة">شراء أثاث / أجهزة جديدة</option>
-                                <option value="فواتير كهرباء ومياه">فواتير كهرباء ومياه ونظافة</option>
-                                <option value="تجديد/دهانات">تجديدات ودهانات</option>
-                                <option value="مصاريف نثرية أخرى">مصاريف نثرية أخرى</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">التكلفة التقديرية (ج.م) <span class="text-rose-500">*</span></label>
-                            <input type="number" id="req-amount" required min="1" step="50" placeholder="مثال: 450" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500">
-                        </div>
-
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">تفاصيل وملاحظات الطلب</label>
-                            <textarea id="req-desc" rows="3" placeholder="اكتب تفاصيل العطل أو المشتريات المطلوبة..." class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"></textarea>
-                        </div>
-
-                        <button type="submit" class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition shadow-md">
-                            <i class="fa-solid fa-paper-plane ml-1"></i> إرسال الطلب للمراجعة
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Requests List Table -->
-                <div class="lg:col-span-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <h3 class="text-sm font-bold text-slate-800 pb-3 mb-4 border-b border-slate-100 flex items-center justify-between">
-                        <span>سجل طلبات ومصاريف الشقق</span>
-                        <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg">إدارة وتدقيق</span>
-                    </h3>
-
-                    <div class="overflow-x-auto custom-scrollbar">
-                        <table class="w-full text-right text-xs">
-                            <thead>
-                                <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
-                                    <th class="p-2.5">الشقة</th>
-                                    <th class="p-2.5">نوع البند</th>
-                                    <th class="p-2.5">المبلغ</th>
-                                    <th class="p-2.5">التاريخ</th>
-                                    <th class="p-2.5">الحالة</th>
-                                    <th class="p-2.5 text-center">إجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody id="requests-table-body" class="divide-y divide-slate-100 text-slate-700">
-                                <!-- Populated via JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 5: Google Sheets & Sites Integration -->
-        <div id="tab-integration" class="tab-content hidden animate-fade-in">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <!-- Info Banner -->
-                <div class="lg:col-span-12 bg-amber-50 border border-amber-200 rounded-2xl p-5 text-amber-900 flex items-start gap-4 shadow-sm">
-                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-700 text-xl font-bold shrink-0">
-                        <i class="fa-solid fa-link"></i>
-                    </div>
-                    <div class="space-y-1 text-xs leading-relaxed">
-                        <h3 class="font-bold text-sm text-amber-950">ربط المنظومة مع Google Sheets & Google Sites</h3>
-                        <p>تتيح لك هذه المنظومة إمكانية التزامن التلقائي مع شيتات جوجل لتحديث جدول الإسكان بصورة حية، وكذلك إمكانية تضمين الشاشة المباشرة بداخل موقع الشركة الداخلي Google Sites بسهولة عبر كود iframe المولد.</p>
-                    </div>
-                </div>
-
-                <!-- Google Sheet Webhook Configuration -->
-                <div class="lg:col-span-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
-                        <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-                            <i class="fa-solid fa-file-excel text-lg"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-bold text-slate-800">إعدادات رابط Webhook / Apps Script</h3>
-                            <p class="text-xs text-slate-500">لإرسال البيانات فور تسجيل أي موظف لشيت جوجل المعتمد</p>
-                        </div>
-                    </div>
-
-                    <div class="space-y-3 text-xs">
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">رابط Google Apps Script Webhook URL</label>
-                            <input type="text" id="integration-sheet-url" placeholder="https://script.google.com/macros/s/.../exec" value="https://script.google.com/macros/s/AKfycbx_sample_housing_sheet_v2/exec" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono text-[11px]">
-                        </div>
-
-                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                            <span class="font-bold text-slate-700 block">خطوات تجهيز Google Sheet:</span>
-                            <ol class="list-decimal list-inside space-y-1 text-slate-600">
-                                <li>افتح Google Sheet واذهب إلى Extensions > Apps Script</li>
-                                <li>ضع كود معالجة الطلبات POST وخلزن البيانات بالجدول</li>
-                                <li>قم بعمل Deploy كـ Web App وحدد الصلاحيات Anyone</li>
-                                <li>انسخ الرابط وضعه في الخانة أعلاه اضغط حفظ واختبار التزامن</li>
-                            </ol>
-                        </div>
-
-                        <div class="flex gap-3">
-                            <button onclick="saveIntegrationConfig()" class="flex-1 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition">
-                                <i class="fa-solid fa-floppy-disk ml-1"></i> حفظ الرابط
-                            </button>
-                            <button onclick="triggerSheetSyncSimulation()" class="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition flex items-center gap-1">
-                                <i class="fa-solid fa-rotate"></i>
-                                <span>اختبار التزامن الآن</span>
-                            </button>
-                        </div>
-
-                        <!-- Sync Log Box -->
-                        <div id="sync-log-box" class="p-3 bg-slate-900 text-emerald-400 font-mono rounded-xl text-[11px] h-24 overflow-y-auto custom-scrollbar">
-                            > جاهز للتزامن مع جوجل شيت...
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Google Sites Embed Code Generator -->
-                <div class="lg:col-span-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
-                        <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-                            <i class="fa-solid fa-globe text-lg"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-bold text-slate-800">تضمين المنظومة في Google Sites</h3>
-                            <p class="text-xs text-slate-500">مولد كود التضمين الإنشائي لموقع السكن الداخلي للشركة</p>
-                        </div>
-                    </div>
-
-                    <div class="space-y-3 text-xs">
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">كود التضمين Ready Iframe Code</label>
-                            <textarea id="iframe-code-output" readonly rows="4" class="w-full px-3 py-2 bg-slate-800 text-slate-100 font-mono text-[11px] rounded-xl focus:outline-none dir-ltr"></textarea>
-                        </div>
-
-                        <button onclick="copyIframeCode()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-copy"></i>
-                            <span>نسخ كود التضمين للحافظة</span>
-                        </button>
-
-                        <div class="p-3 bg-blue-50/60 rounded-xl border border-blue-100 text-slate-700">
-                            <span class="font-bold block mb-1">طريقة التضمين في Google Sites:</span>
-                            <span>في صفحة تحرير موقع Google Sites > من قائمة Insert اختر Embed > اختر Embed Code > ثم الصق الكود أعلاه واضغط Insert.</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 6: Users & Role Management -->
-        <div id="tab-users" class="tab-content hidden animate-fade-in">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <!-- Add User Form -->
-                <div class="lg:col-span-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-fit">
-                    <div class="flex items-center gap-3 pb-3 mb-4 border-b border-slate-100">
-                        <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
-                            <i class="fa-solid fa-user-plus"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-bold text-slate-800">إضافة مستخدم للأنظمة</h3>
-                            <p class="text-xs text-slate-500">منح صلاحية الوصول لمشرف سكن جديد أو أدمن</p>
-                        </div>
-                    </div>
-
-                    <form id="add-user-form" onsubmit="handleAddUserSubmit(event)" class="space-y-3.5 text-xs">
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">الاسم الكامل <span class="text-rose-500">*</span></label>
-                            <input type="text" id="new-user-name" required placeholder="مثال: م. أحمد السعيد" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500">
-                        </div>
-
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">نوع الصلاحية / Role <span class="text-rose-500">*</span></label>
-                            <select id="new-user-role" required class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500">
-                                <option value="admin">مدير النظام (أدمن - كامل الصلاحيات)</option>
-                                <option value="supervisor">مشرف سكن (إدخال وتصفح فقط)</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">البريد الإلكتروني / اسم المستخدم</label>
-                            <input type="email" id="new-user-email" placeholder="user@company.com" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500">
-                        </div>
-
-                        <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition shadow-md">
-                            <i class="fa-solid fa-user-check ml-1"></i> إضافة المستخدم
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Users Table -->
-                <div class="lg:col-span-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <h3 class="text-sm font-bold text-slate-800 pb-3 mb-4 border-b border-slate-100 flex items-center justify-between">
-                        <span>قائمة المستخدمين المعتمدين بالنظام</span>
-                        <span class="text-xs bg-indigo-50 text-indigo-700 font-bold px-2.5 py-1 rounded-lg">إدارة الصلاحيات</span>
-                    </h3>
-
-                    <div class="overflow-x-auto custom-scrollbar">
-                        <table class="w-full text-right text-xs">
-                            <thead>
-                                <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
-                                    <th class="p-3">اسم المستخدم</th>
-                                    <th class="p-3">البريد الإلكتروني</th>
-                                    <th class="p-3">الصلاحية</th>
-                                    <th class="p-3 text-center">الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody id="users-table-body" class="divide-y divide-slate-100 text-slate-700">
-                                <!-- Populated via JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- MODAL 1: Role Switcher Modal -->
-    <div id="modal-user-switcher" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 animate-fade-in space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 class="font-bold text-base text-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-user-gear text-brand-600"></i>
-                    <span>تغيير حشاب المستخدم الحالي</span>
-                </h3>
-                <button onclick="closeUserModal()" class="text-slate-400 hover:text-slate-600">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <p class="text-xs text-slate-500">اختر أحد الحسابات المسجلة لتجربة النظام بصلاحية المدير أو المشرف:</p>
-
-            <div id="modal-users-list" class="space-y-2">
-                <!-- Populated dynamically -->
-            </div>
-
-            <div class="pt-2 flex justify-end">
-                <button onclick="closeUserModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition">
-                    إغلاق
-                </button>
-            </div>
-        </div>
+<!-- شاشة الإعداد (تظهر فقط لو إعدادات Firebase لم تُضبط) -->
+<div id="setup-screen" class="hidden min-h-screen flex items-center justify-center p-6">
+  <div class="bg-white max-w-lg w-full rounded-2xl shadow p-6 border border-amber-200 text-sm leading-7">
+    <h2 class="font-bold text-lg text-amber-700 mb-2"><i class="fa-solid fa-triangle-exclamation ml-1"></i> الموقع محتاج ربط بقاعدة البيانات</h2>
+    <p>افتح ملف <b>index.html</b> وابحث عن <code class="bg-slate-100 px-1 rounded">firebaseConfig</code> وضع بيانات مشروع Firebase الخاصة بك، وغيّر <code class="bg-slate-100 px-1 rounded">ADMIN_EMAIL</code> لإيميلك. الخطوات كاملة في ملف <b>SETUP.md</b>.</p>
+  </div>
+</div>
+
+<!-- شاشة الدخول -->
+<div id="login-screen" class="hidden min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-brand-900">
+  <form id="login-form" class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-7 space-y-4">
+    <div class="text-center">
+      <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center text-2xl"><i class="fa-solid fa-building-user"></i></div>
+      <h1 class="font-bold text-lg">منظومة إسكان الشركة</h1>
+      <p class="text-xs text-slate-500">سجّل الدخول للمتابعة</p>
     </div>
-
-    <!-- MODAL 2: Evict/Move Employee Modal -->
-    <div id="modal-evict-emp" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 animate-fade-in space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 class="font-bold text-base text-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-right-from-bracket text-rose-600"></i>
-                    <span>إخلاء طرف / نقل الموظف</span>
-                </h3>
-                <button onclick="closeEvictModal()" class="text-slate-400 hover:text-slate-600">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <div class="text-xs space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
-                <p>اسم الموظف: <span id="evict-emp-name" class="font-bold text-slate-900">--</span></p>
-                <p>الشقة الحالية: <span id="evict-emp-apt" class="font-bold text-slate-900">--</span></p>
-            </div>
-
-            <div class="space-y-2">
-                <button onclick="confirmEvictEmployee()" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition">
-                    <i class="fa-solid fa-user-minus ml-1"></i> إخلاء كامل وإخلاء السرير
-                </button>
-            </div>
-
-            <div class="pt-2 flex justify-end">
-                <button onclick="closeEvictModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition">
-                    إلغاء
-                </button>
-            </div>
-        </div>
+    <div id="login-error" class="hidden p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold"></div>
+    <div>
+      <label class="block text-xs font-bold mb-1">البريد الإلكتروني</label>
+      <input id="login-email" type="email" required dir="ltr" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
     </div>
-
-    <script>
-        // Default State & Data Structures
-        const DEFAULT_APARTMENTS = [
-            { id: "APT-101", number: "شقة 101 - عمائر العمال", type: "شقة عمال", location: "حي الأمل - البناء 4", totalBeds: 6, rent: 7500, contractEnd: "2027-01-15", supervisor: "م. إبراهيم فؤاد", notes: "مجهزة بالكامل" },
-            { id: "APT-102", number: "شقة 102 - عمائر العمال", type: "شقة عمال", location: "حي الأمل - البناء 4", totalBeds: 6, rent: 7500, contractEnd: "2026-11-30", supervisor: "م. إبراهيم فؤاد", notes: "تكييف صالة" },
-            { id: "APT-201", number: "شقة 201 - برج المهندسين", type: "شقة مهندسين", location: "المنطقة الأولى - شقة 5", totalBeds: 3, rent: 12000, contractEnd: "2027-06-30", supervisor: "م. أحمد عبد الفتاح", notes: "فرش مميز" },
-            { id: "APT-202", number: "شقة 202 - برج المهندسين", type: "شقة مهندسين", location: "المنطقة الأولى - شقة 6", totalBeds: 3, rent: 12000, contractEnd: "2026-12-01", supervisor: "م. أحمد عبد الفتاح", notes: "قريبة من موقع المشروع" },
-            { id: "APT-301", number: "شقة 301 - فيلا المديرين", type: "شقة مديرين", location: "حي الياسمين - فيلا 12", totalBeds: 2, rent: 18000, contractEnd: "2028-03-31", supervisor: "م. خالد منصور", notes: "جناح خاص مستقل" }
-        ];
-
-        const DEFAULT_EMPLOYEES = [
-            { id: "EMP-101", name: "علي حسن محمود علي", role: "فني كهرباء", category: "شقة عمال", entryDate: "2026-01-10", aptId: "APT-101", bedIndex: 1 },
-            { id: "EMP-102", name: "محمد سعيد القحطاني", role: "عامل", category: "شقة عمال", entryDate: "2026-02-01", aptId: "APT-101", bedIndex: 2 },
-            { id: "EMP-103", name: "كمال السيد إبراهيم", role: "سائق", category: "شقة عمال", entryDate: "2026-02-15", aptId: "APT-101", bedIndex: 3 },
-            { id: "EMP-104", name: "م. عمر الشريف مصطفى", role: "مهندس موقع", category: "شقة مهندسين", entryDate: "2026-01-05", aptId: "APT-201", bedIndex: 1 },
-            { id: "EMP-105", name: "م. طارق عبد الرؤوف", role: "مهندس مكتب فني", category: "شقة مهندسين", entryDate: "2026-02-20", aptId: "APT-201", bedIndex: 2 },
-            { id: "EMP-106", name: "م. عادل إبراهيم سلامة", role: "مدير مشروع", category: "شقة مديرين", entryDate: "2026-01-01", aptId: "APT-301", bedIndex: 1 }
-        ];
-
-        const DEFAULT_REQUESTS = [
-            { id: "REQ-101", aptId: "APT-101", type: "صيانة سباكة/كهرباء", amount: 450, date: "2026-09-28", status: "معتمد", description: "صيانة خلاطات ومحابس مياه حمام الشقة" },
-            { id: "REQ-102", aptId: "APT-201", type: "فواتير كهرباء ومياه", amount: 820, date: "2026-10-01", status: "قيد الانتظار", description: "فاتورة كهرباء شهر سبتمبر" }
-        ];
-
-        const DEFAULT_USERS = [
-            { id: "USR-1", name: "مدير النظام (أدمن)", role: "admin", email: "admin@company.com" },
-            { id: "USR-2", name: "م. أحمد المشرف", role: "supervisor", email: "supervisor@company.com" }
-        ];
-
-        // Global State
-        let state = {
-            currentUser: DEFAULT_USERS[0],
-            apartments: [...DEFAULT_APARTMENTS],
-            employees: [...DEFAULT_EMPLOYEES],
-            requests: [...DEFAULT_REQUESTS],
-            users: [...DEFAULT_USERS],
-            selectedEvictEmpId: null
-        };
-
-        function switchTab(tabKey) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-
-            const targetTab = document.getElementById(`tab-${tabKey}`);
-            const targetBtn = document.getElementById(`tab-btn-${tabKey}`);
-
-            if (targetTab && targetBtn) {
-                targetTab.classList.remove('hidden');
-                targetBtn.classList.add('active');
-            }
-
-            // Trigger tab specific renders
-            if (tabKey === 'report') renderReportTable();
-            if (tabKey === 'settings') renderApartmentsList();
-            if (tabKey === 'requests') { renderExpenseApartmentOptions(); renderRequestsList(); }
-            if (tabKey === 'integration') updateIframeCode();
-            if (tabKey === 'users') renderUsersList();
-        }
-
-        function getCategoryForRole(role) {
-            const workersRoles = ["عامل", "فني كهرباء", "فني ميكانيكا", "سائق", "أمن"];
-            const engineersRoles = ["مهندس موقع", "مهندس مكتب فني", "محاسب موقع", "مشرف تنفيذ", "أخصائي جودة"];
-            const managersRoles = ["مدير مشروع", "مدير تنفيذي", "رئيس قطاع", "مستشار فنّي"];
-
-            if (workersRoles.includes(role)) return "شقة عمال";
-            if (engineersRoles.includes(role)) return "شقة مهندسين";
-            if (managersRoles.includes(role)) return "شقة مديرين";
-            return "شقة عمال";
-        }
-
-        function updateHousingCategoryPreview() {
-            const roleVal = document.getElementById('emp-role').value;
-            const tagEl = document.getElementById('housing-type-tag');
-            if (!roleVal) return;
-
-            const category = getCategoryForRole(roleVal);
-            tagEl.textContent = category;
-
-            if (category === 'شقة عمال') {
-                tagEl.className = "px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700";
-            } else if (category === 'شقة مهندسين') {
-                tagEl.className = "px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700";
-            } else {
-                tagEl.className = "px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700";
-            }
-        }
-
-        function handleEmployeeSubmit(e) {
-            e.preventDefault();
-            const name = document.getElementById('emp-name').value.trim();
-            const role = document.getElementById('emp-role').value;
-            const entryDate = document.getElementById('emp-entry-date').value;
-
-            if (!name || !role || !entryDate) {
-                showToast("يرجى تعبئة كافة الحقول المطلوبة", "warning");
-                return;
-            }
-
-            const category = getCategoryForRole(role);
-
-            // Find available apartment of this category that has an empty bed slot
-            const eligibleApts = state.apartments.filter(a => a.type === category);
-            let targetApt = null;
-            let targetBedIndex = -1;
-
-            for (const apt of eligibleApts) {
-                const currentOccupants = state.employees.filter(e => e.aptId === apt.id);
-                if (currentOccupants.length < apt.totalBeds) {
-                    targetApt = apt;
-                    // Find first available bed index (1 to totalBeds)
-                    const occupiedIndices = currentOccupants.map(o => o.bedIndex);
-                    for (let i = 1; i <= apt.totalBeds; i++) {
-                        if (!occupiedIndices.includes(i)) {
-                            targetBedIndex = i;
-                            break;
-                        }
-                    }
-                    break;
-                }
-            }
-
-            if (!targetApt || targetBedIndex === -1) {
-                showToast(`عفواً، لا توجد أسرة شاغرة حالياً في (${category}). يمكنك إضافة شقة جديدة من قائمة الإعدادات.`, "error");
-                return;
-            }
-
-            // Register employee
-            const newEmp = {
-                id: "EMP-" + Date.now().toString().slice(-4),
-                name: name,
-                role: role,
-                category: category,
-                entryDate: entryDate,
-                aptId: targetApt.id,
-                bedIndex: targetBedIndex
-            };
-
-            state.employees.push(newEmp);
-
-            // Reset Form
-            document.getElementById('add-employee-form').reset();
-            document.getElementById('housing-type-tag').textContent = "لم يحدد";
-            document.getElementById('housing-type-tag').className = "px-3 py-1 rounded-full text-xs font-bold bg-slate-200 text-slate-700";
-
-            showToast(`تم تسكين الموظف (${name}) بنجاح في (${targetApt.number}) - سرير ${targetBedIndex}`, "success");
-
-            updateGlobalStatsAndVisuals();
-            
-            // Auto sync log if enabled
-            appendSyncLog(`تم تسكين الموظف الجديد: ${name} -> ${targetApt.number}`);
-        }
-
-        function updateGlobalStatsAndVisuals() {
-            // Count free beds per category
-            let workersFree = 0, engineersFree = 0, managersFree = 0, totalFree = 0;
-
-            state.apartments.forEach(apt => {
-                const occ = state.employees.filter(e => e.aptId === apt.id).length;
-                const free = apt.totalBeds - occ;
-                totalFree += free;
-
-                if (apt.type === 'شقة عمال') workersFree += free;
-                if (apt.type === 'شقة مهندسين') engineersFree += free;
-                if (apt.type === 'شقة مديرين') managersFree += free;
-            });
-
-            document.getElementById('global-free-beds').textContent = `${totalFree} سرير`;
-            document.getElementById('stat-workers-avail').textContent = `${workersFree} سرير شاغر`;
-            document.getElementById('stat-engineers-avail').textContent = `${engineersFree} سرير شاغر`;
-            document.getElementById('stat-managers-avail').textContent = `${managersFree} سرير شاغر`;
-
-            // Render Live Visual Grid
-            renderBedsVisualGrid();
-        }
-
-        function renderBedsVisualGrid() {
-            const container = document.getElementById('beds-visual-container');
-            container.innerHTML = '';
-
-            if (state.apartments.length === 0) {
-                container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">لا توجد شقق مسجلة بالنظام حتى الآن</div>`;
-                return;
-            }
-
-            state.apartments.forEach(apt => {
-                const occupants = state.employees.filter(e => e.aptId === apt.id);
-                
-                const card = document.createElement('div');
-                card.className = "p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3";
-
-                let bedSlotsHtml = '';
-                for (let i = 1; i <= apt.totalBeds; i++) {
-                    const empOnBed = occupants.find(o => o.bedIndex === i);
-                    if (empOnBed) {
-                        bedSlotsHtml += `
-                            <div class="p-2 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-between text-xs">
-                                <div class="flex items-center gap-2 overflow-hidden">
-                                    <i class="fa-solid fa-bed text-emerald-600"></i>
-                                    <span class="font-bold text-slate-800 truncate">${empOnBed.name}</span>
-                                </div>
-                                <span class="text-[10px] bg-emerald-200/80 text-emerald-800 px-2 py-0.5 rounded-md shrink-0">${empOnBed.role}</span>
-                            </div>
-                        `;
-                    } else {
-                        bedSlotsHtml += `
-                            <div class="p-2 bg-white border border-dashed border-slate-300 rounded-lg flex items-center justify-between text-xs text-slate-400">
-                                <div class="flex items-center gap-2">
-                                    <i class="fa-solid fa-bed text-slate-300"></i>
-                                    <span>سرير ${i} (شاغر)</span>
-                                </div>
-                                <button onclick="quickFocusAllocation()" class="text-[10px] text-brand-600 font-bold hover:underline">تسكين +</button>
-                            </div>
-                        `;
-                    }
-                }
-
-                card.innerHTML = `
-                    <div class="flex items-center justify-between border-b border-slate-200 pb-2">
-                        <div>
-                            <span class="font-bold text-xs text-slate-900">${apt.number}</span>
-                            <span class="text-[11px] text-slate-500 block">${apt.location}</span>
-                        </div>
-                        <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg ${apt.type==='شقة عمال'?'bg-blue-100 text-blue-700':apt.type==='شقة مهندسين'?'bg-purple-100 text-purple-700':'bg-amber-100 text-amber-700'}">
-                            ${apt.type} (${occupants.length}/${apt.totalBeds})
-                        </span>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        ${bedSlotsHtml}
-                    </div>
-                `;
-
-                container.appendChild(card);
-            });
-        }
-
-        function quickFocusAllocation() {
-            document.getElementById('emp-name').focus();
-        }
-
-        function renderReportTable() {
-            const tbody = document.getElementById('report-table-body');
-            const searchVal = document.getElementById('report-search').value.toLowerCase();
-            const filterType = document.getElementById('report-filter-type').value;
-
-            tbody.innerHTML = '';
-
-            let totalRecordsCount = 0;
-            let totalMonthlyRentSum = 0;
-
-            state.apartments.forEach(apt => {
-                // Filter Apt Type
-                if (filterType !== 'ALL' && apt.type !== filterType) return;
-
-                const occupants = state.employees.filter(e => e.aptId === apt.id);
-
-                // If apartment matches search OR any occupant matches
-                const matchesSearch = apt.number.toLowerCase().includes(searchVal) ||
-                                     apt.location.toLowerCase().includes(searchVal) ||
-                                     occupants.some(o => o.name.toLowerCase().includes(searchVal) || o.role.toLowerCase().includes(searchVal));
-
-                if (!matchesSearch && searchVal !== '') return;
-
-                totalMonthlyRentSum += Number(apt.rent);
-
-                if (occupants.length === 0) {
-                    // Show empty apartment row
-                    totalRecordsCount++;
-                    const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-50/80 transition border-b border-slate-100";
-                    tr.innerHTML = `
-                        <td class="p-3.5 font-bold text-slate-900">${apt.number}</td>
-                        <td class="p-3.5">${apt.type} - <span class="text-slate-500">${apt.location}</span></td>
-                        <td class="p-3.5 text-center"><span class="px-2 py-1 rounded-md text-[10px] bg-emerald-100 text-emerald-800 font-bold">0 / ${apt.totalBeds} (شاغرة بالكامل)</span></td>
-                        <td class="p-3.5 text-slate-400 italic">-- لا يوجد ساكنين --</td>
-                        <td class="p-3.5 text-slate-400 italic">--</td>
-                        <td class="p-3.5 font-mono font-bold">${apt.rent.toLocaleString()} ج.م</td>
-                        <td class="p-3.5">${apt.contractEnd}</td>
-                        <td class="p-3.5">${apt.supervisor || '--'}</td>
-                        <td class="p-3.5 text-center no-print">--</td>
-                    `;
-                    tbody.appendChild(tr);
-                } else {
-                    occupants.forEach((emp, idx) => {
-                        totalRecordsCount++;
-                        const tr = document.createElement('tr');
-                        tr.className = "hover:bg-slate-50/80 transition border-b border-slate-100";
-
-                        // Spanning apartment info if multi occupants
-                        tr.innerHTML = `
-                            <td class="p-3.5 font-bold text-slate-900">${idx === 0 ? apt.number : '<span class="text-slate-300">↳</span>'}</td>
-                            <td class="p-3.5">${idx === 0 ? `${apt.type} - <span class="text-slate-500">${apt.location}</span>` : ''}</td>
-                            <td class="p-3.5 text-center">${idx === 0 ? `<span class="px-2 py-1 rounded-md text-[10px] bg-slate-200 text-slate-800 font-bold">${occupants.length} / ${apt.totalBeds}</span>` : ''}</td>
-                            <td class="p-3.5 font-bold text-brand-900">${emp.name}</td>
-                            <td class="p-3.5"><span class="bg-slate-100 px-2 py-0.5 rounded text-slate-700">${emp.role}</span></td>
-                            <td class="p-3.5 font-mono font-bold">${idx === 0 ? `${apt.rent.toLocaleString()} ج.م` : ''}</td>
-                            <td class="p-3.5">${idx === 0 ? apt.contractEnd : ''}</td>
-                            <td class="p-3.5">${idx === 0 ? (apt.supervisor || '--') : ''}</td>
-                            <td class="p-3.5 text-center no-print">
-                                <button onclick="openEvictModal('${emp.id}')" class="px-2 py-1 text-rose-600 hover:bg-rose-50 rounded-lg transition font-bold" title="إخلاء طرف الموظف">
-                                    <i class="fa-solid fa-user-xmark"></i> إخلاء
-                                </button>
-                            </td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
-                }
-            });
-
-            document.getElementById('report-total-records').textContent = `إجمالي الساكنين المسجلين: ${state.employees.length} موظف / فني`;
-            document.getElementById('report-total-rent').textContent = `إجمالي إيجارات الشقق الشهري: ${totalMonthlyRentSum.toLocaleString()} ج.م`;
-        }
-
-        function renderApartmentsList() {
-            const container = document.getElementById('apartments-list-grid');
-            container.innerHTML = '';
-
-            document.getElementById('apt-count-badge').textContent = `${state.apartments.length} شقق مسجلة`;
-
-            state.apartments.forEach(apt => {
-                const occupants = state.employees.filter(e => e.aptId === apt.id);
-                const percent = Math.round((occupants.length / apt.totalBeds) * 100);
-
-                const card = document.createElement('div');
-                card.className = "p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 relative";
-
-                const isSupervisor = state.currentUser.role === 'supervisor';
-
-                card.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h4 class="font-bold text-sm text-slate-900">${apt.number}</h4>
-                            <p class="text-xs text-slate-500">${apt.location}</p>
-                        </div>
-                        <span class="text-xs font-bold px-2 py-1 rounded-lg ${apt.type==='شقة عمال'?'bg-blue-100 text-blue-800':apt.type==='شقة مهندسين'?'bg-purple-100 text-purple-800':'bg-amber-100 text-amber-800'}">
-                            ${apt.type}
-                        </span>
-                    </div>
-
-                    <div class="space-y-1 text-xs">
-                        <div class="flex justify-between text-slate-600">
-                            <span>نسبة الإشغال (${occupants.length}/${apt.totalBeds}):</span>
-                            <span class="font-bold">${percent}%</span>
-                        </div>
-                        <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
-                            <div class="bg-brand-600 h-2 rounded-full" style="width: ${percent}%"></div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 text-[11px] bg-white p-2.5 rounded-lg border border-slate-200">
-                        <div><span class="text-slate-400">الإيجار:</span> <strong class="text-slate-800">${apt.rent.toLocaleString()} ج.م</strong></div>
-                        <div><span class="text-slate-400">العقد حتى:</span> <strong class="text-slate-800">${apt.contractEnd}</strong></div>
-                        <div class="col-span-2"><span class="text-slate-400">المشرف المسؤول:</span> <strong class="text-slate-800">${apt.supervisor || 'غير محدد'}</strong></div>
-                    </div>
-
-                    ${!isSupervisor ? `
-                        <div class="flex gap-2 pt-1 border-t border-slate-200">
-                            <button onclick="editApartment('${apt.id}')" class="flex-1 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-lg text-xs transition">
-                                <i class="fa-solid fa-pen ml-1"></i> تعديل
-                            </button>
-                            <button onclick="deleteApartment('${apt.id}')" class="py-1.5 px-3 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold rounded-lg text-xs transition">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </div>
-                    ` : ''}
-                `;
-
-                container.appendChild(card);
-            });
-        }
-
-        function handleApartmentSave(e) {
-            e.preventDefault();
-
-            if (state.currentUser.role === 'supervisor') {
-                showToast("عفواً، حساب المشرف لا يملك صلاحية تعديل الشقق", "error");
-                return;
-            }
-
-            const hiddenId = document.getElementById('apt-id-hidden').value;
-            const number = document.getElementById('apt-number').value.trim();
-            const type = document.getElementById('apt-type').value;
-            const location = document.getElementById('apt-location').value.trim();
-            const beds = parseInt(document.getElementById('apt-beds').value);
-            const rent = parseFloat(document.getElementById('apt-rent').value);
-            const contractEnd = document.getElementById('apt-contract-end').value;
-            const supervisor = document.getElementById('apt-supervisor').value.trim();
-
-            if (hiddenId) {
-                // Edit existing
-                const apt = state.apartments.find(a => a.id === hiddenId);
-                if (apt) {
-                    apt.number = number;
-                    apt.type = type;
-                    apt.location = location;
-                    apt.totalBeds = beds;
-                    apt.rent = rent;
-                    apt.contractEnd = contractEnd;
-                    apt.supervisor = supervisor;
-                    showToast(`تم تعديل الشقة (${number}) بنجاح`, "success");
-                }
-            } else {
-                // Add new
-                const newApt = {
-                    id: "APT-" + Date.now().toString().slice(-4),
-                    number: number,
-                    type: type,
-                    location: location || "غير محدد",
-                    totalBeds: beds || 4,
-                    rent: rent || 0,
-                    contractEnd: contractEnd,
-                    supervisor: supervisor,
-                    notes: ""
-                };
-                state.apartments.push(newApt);
-                showToast(`تم إضافة الشقة الجديدة (${number}) بنجاح`, "success");
-            }
-
-            resetAptForm();
-            renderApartmentsList();
-            updateGlobalStatsAndVisuals();
-        }
-
-        function editApartment(aptId) {
-            const apt = state.apartments.find(a => a.id === aptId);
-            if (!apt) return;
-
-            document.getElementById('apt-id-hidden').value = apt.id;
-            document.getElementById('apt-number').value = apt.number;
-            document.getElementById('apt-type').value = apt.type;
-            document.getElementById('apt-location').value = apt.location;
-            document.getElementById('apt-beds').value = apt.totalBeds;
-            document.getElementById('apt-rent').value = apt.rent;
-            document.getElementById('apt-contract-end').value = apt.contractEnd;
-            document.getElementById('apt-supervisor').value = apt.supervisor;
-
-            document.getElementById('apt-form-title').textContent = "تعديل بيانات الشقة";
-            document.getElementById('btn-save-apt').innerHTML = `<i class="fa-solid fa-floppy-disk ml-1"></i> حفظ التعديلات`;
-        }
-
-        function deleteApartment(aptId) {
-            const occupants = state.employees.filter(e => e.aptId === aptId);
-            if (occupants.length > 0) {
-                showToast("لا يمكن حذف الشقة لأنها تحتوي على ساكنين مسجلين حالياً. قم بإخلائهم أولاً.", "warning");
-                return;
-            }
-
-            state.apartments = state.apartments.filter(a => a.id !== aptId);
-            showToast("تم حذف الشقة بنجاح", "info");
-            renderApartmentsList();
-            updateGlobalStatsAndVisuals();
-        }
-
-        function resetAptForm() {
-            document.getElementById('apt-manage-form').reset();
-            document.getElementById('apt-id-hidden').value = '';
-            document.getElementById('apt-form-title').textContent = "إضافة شقة جديدة";
-            document.getElementById('btn-save-apt').innerHTML = `<i class="fa-solid fa-floppy-disk ml-1"></i> حفظ الشقة`;
-        }
-
-        function renderExpenseApartmentOptions() {
-            const select = document.getElementById('req-apt-id');
-            select.innerHTML = '';
-            state.apartments.forEach(a => {
-                const opt = document.createElement('option');
-                opt.value = a.id;
-                opt.textContent = `${a.number} (${a.type})`;
-                select.appendChild(opt);
-            });
-        }
-
-        function handleRequestSubmit(e) {
-            e.preventDefault();
-            const aptId = document.getElementById('req-apt-id').value;
-            const type = document.getElementById('req-type').value;
-            const amount = parseFloat(document.getElementById('req-amount').value);
-            const desc = document.getElementById('req-desc').value;
-
-            const newReq = {
-                id: "REQ-" + Date.now().toString().slice(-4),
-                aptId: aptId,
-                type: type,
-                amount: amount,
-                date: new Date().toISOString().split('T')[0],
-                status: "قيد الانتظار",
-                description: desc
-            };
-
-            state.requests.unshift(newReq);
-            document.getElementById('expense-form').reset();
-            showToast("تم رفع طلب المصروفات بنجاح وفي انتظار اعتماد الإدارة", "success");
-            renderRequestsList();
-        }
-
-        function renderRequestsList() {
-            const tbody = document.getElementById('requests-table-body');
-            tbody.innerHTML = '';
-
-            let pendingCount = 0, approvedCount = 0, maintSum = 0, utilSum = 0;
-
-            state.requests.forEach(req => {
-                const apt = state.apartments.find(a => a.id === req.aptId);
-
-                if (req.status === 'قيد الانتظار') pendingCount++;
-                if (req.status === 'معتمد') approvedCount++;
-
-                if (req.type.includes('صيانة')) maintSum += req.amount;
-                if (req.type.includes('فواتير')) utilSum += req.amount;
-
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
-
-                tr.innerHTML = `
-                    <td class="p-2.5 font-bold">${apt ? apt.number : 'غير محدد'}</td>
-                    <td class="p-2.5">${req.type}</td>
-                    <td class="p-2.5 font-mono font-bold">${req.amount.toLocaleString()} ج.م</td>
-                    <td class="p-2.5 text-slate-500">${req.date}</td>
-                    <td class="p-2.5">
-                        <span class="px-2 py-1 rounded-md text-[10px] font-bold ${req.status==='معتمد'?'bg-emerald-100 text-emerald-800':req.status==='مرفوض'?'bg-rose-100 text-rose-800':'bg-amber-100 text-amber-800'}">
-                            ${req.status}
-                        </span>
-                    </td>
-                    <td class="p-2.5 text-center">
-                        ${state.currentUser.role === 'admin' && req.status === 'قيد الانتظار' ? `
-                            <button onclick="updateReqStatus('${req.id}', 'معتمد')" class="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-bold text-[10px] ml-1">اعتماد</button>
-                            <button onclick="updateReqStatus('${req.id}', 'مرفوض')" class="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded font-bold text-[10px]">رفض</button>
-                        ` : '--'}
-                    </td>
-                `;
-
-                tbody.appendChild(tr);
-            });
-
-            document.getElementById('kpi-pending-reqs').textContent = pendingCount;
-            document.getElementById('kpi-approved-reqs').textContent = approvedCount;
-            document.getElementById('kpi-maintenance-sum').textContent = `${maintSum.toLocaleString()} ج.م`;
-            document.getElementById('kpi-utilities-sum').textContent = `${utilSum.toLocaleString()} ج.م`;
-        }
-
-        function updateReqStatus(reqId, status) {
-            const req = state.requests.find(r => r.id === reqId);
-            if (req) {
-                req.status = status;
-                showToast(`تم تحديث حالة الطلب إلى (${status})`, "info");
-                renderRequestsList();
-            }
-        }
-
-        function saveIntegrationConfig() {
-            const url = document.getElementById('integration-sheet-url').value;
-            showToast("تم حفظ رابط Google Apps Script بنجاح", "success");
-            appendSyncLog("تم تحديث الرابط إلى: " + url);
-        }
-
-        function triggerSheetSyncSimulation() {
-            appendSyncLog("جارٍ الاتصال بسيرفرات Google Sheets...");
-            setTimeout(() => {
-                appendSyncLog("تم جلب البيانات وتحديث التناسق بنجاح ✔");
-                showToast("تم التزامن بنجاح مع شيت جوجل المعتمد", "success");
-            }, 1000);
-        }
-
-        function appendSyncLog(msg) {
-            const box = document.getElementById('sync-log-box');
-            box.innerHTML += `<div>> [${new Date().toLocaleTimeString('ar-EG')}] ${msg}</div>`;
-            box.scrollTop = box.scrollHeight;
-        }
-
-        function updateIframeCode() {
-            const currentUrl = window.location.href;
-            const iframeCode = `<iframe src="${currentUrl}" width="100%" height="750px" style="border:none; border-radius:16px; box-shadow:0 10px 25px rgba(0,0,0,0.1);" title="منظومة إدارة السكن الإداري"></iframe>`;
-            document.getElementById('iframe-code-output').value = iframeCode;
-        }
-
-        function copyIframeCode() {
-            const copyText = document.getElementById('iframe-code-output');
-            copyText.select();
-            document.execCommand('copy');
-            showToast("تم نسخ كود التضمين الحافظة بنجاح", "success");
-        }
-
-        function renderUsersList() {
-            const tbody = document.getElementById('users-table-body');
-            tbody.innerHTML = '';
-
-            state.users.forEach(usr => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
-                tr.innerHTML = `
-                    <td class="p-3 font-bold">${usr.name}</td>
-                    <td class="p-3 text-slate-500">${usr.email || '--'}</td>
-                    <td class="p-3">
-                        <span class="px-2 py-1 rounded-md text-[10px] font-bold ${usr.role==='admin'?'bg-indigo-100 text-indigo-800':'bg-slate-100 text-slate-800'}">
-                            ${usr.role === 'admin' ? 'مدير نظام (أدمن)' : 'مشرف سكن'}
-                        </span>
-                    </td>
-                    <td class="p-3 text-center">
-                        <button onclick="switchCurrentUser('${usr.id}')" class="px-2 py-1 bg-brand-50 text-brand-700 hover:bg-brand-100 rounded font-bold text-[10px]">
-                            الدخول به
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function handleAddUserSubmit(e) {
-            e.preventDefault();
-            const name = document.getElementById('new-user-name').value.trim();
-            const role = document.getElementById('new-user-role').value;
-            const email = document.getElementById('new-user-email').value.trim();
-
-            const newUser = {
-                id: "USR-" + Date.now().toString().slice(-4),
-                name: name,
-                role: role,
-                email: email
-            };
-
-            state.users.push(newUser);
-            document.getElementById('add-user-form').reset();
-            showToast(`تم إضافة المستخدم (${name}) بنجاح`, "success");
-            renderUsersList();
-        }
-
-        function switchCurrentUser(usrId) {
-            const usr = state.users.find(u => u.id === usrId);
-            if (usr) {
-                state.currentUser = usr;
-                document.getElementById('current-user-display').textContent = `${usr.name} (${usr.role==='admin'?'أدمن':'مشرف'})`;
-                
-                // Show/hide lock warning in settings tab
-                const lockAlert = document.getElementById('supervisor-settings-lock');
-                if (usr.role === 'supervisor') {
-                    lockAlert.classList.remove('hidden');
-                } else {
-                    lockAlert.classList.add('hidden');
-                }
-
-                showToast(`تم التبديل بنجاح إلى حساب: ${usr.name}`, "info");
-                closeUserModal();
-                renderApartmentsList();
-                renderRequestsList();
-            }
-        }
-
-        function openUserModal() {
-            const listContainer = document.getElementById('modal-users-list');
-            listContainer.innerHTML = '';
-
-            state.users.forEach(usr => {
-                const btn = document.createElement('button');
-                btn.className = `w-full p-3 text-right rounded-xl border flex justify-between items-center transition ${state.currentUser.id === usr.id ? 'bg-brand-50 border-brand-300 text-brand-900 font-bold' : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-800'}`;
-                btn.onclick = () => switchCurrentUser(usr.id);
-                btn.innerHTML = `
-                    <div>
-                        <span class="block text-xs font-bold">${usr.name}</span>
-                        <span class="text-[10px] text-slate-500">${usr.role === 'admin' ? 'مدير نظام كامل الصلاحيات' : 'مشرف سكن إداري'}</span>
-                    </div>
-                    ${state.currentUser.id === usr.id ? '<i class="fa-solid fa-circle-check text-brand-600"></i>' : ''}
-                `;
-                listContainer.appendChild(btn);
-            });
-
-            document.getElementById('modal-user-switcher').classList.remove('hidden');
-        }
-
-        function closeUserModal() {
-            document.getElementById('modal-user-switcher').classList.add('hidden');
-        }
-
-        function openEvictModal(empId) {
-            const emp = state.employees.find(e => e.id === empId);
-            if (!emp) return;
-
-            const apt = state.apartments.find(a => a.id === emp.aptId);
-
-            state.selectedEvictEmpId = empId;
-            document.getElementById('evict-emp-name').textContent = emp.name;
-            document.getElementById('evict-emp-apt').textContent = apt ? apt.number : 'غير محدد';
-
-            document.getElementById('modal-evict-emp').classList.remove('hidden');
-        }
-
-        function closeEvictModal() {
-            document.getElementById('modal-evict-emp').classList.add('hidden');
-            state.selectedEvictEmpId = null;
-        }
-
-        function confirmEvictEmployee() {
-            if (!state.selectedEvictEmpId) return;
-
-            const emp = state.employees.find(e => e.id === state.selectedEvictEmpId);
-            if (emp) {
-                state.employees = state.employees.filter(e => e.id !== emp.id);
-                showToast(`تم إخلاء طرف الموظف (${emp.name}) وإتاحية السرير بالمنظومة`, "success");
-                appendSyncLog(`إخلاء موظف: ${emp.name}`);
-            }
-
-            closeEvictModal();
-            renderReportTable();
-            updateGlobalStatsAndVisuals();
-        }
-
-        // Custom Toast Notification System (replaces alerts)
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-
-            let bgClass = "bg-slate-900 text-white";
-            let iconClass = "fa-circle-info text-blue-400";
-
-            if (type === 'success') {
-                bgClass = "bg-emerald-950 text-emerald-100 border border-emerald-800";
-                iconClass = "fa-circle-check text-emerald-400";
-            } else if (type === 'warning') {
-                bgClass = "bg-amber-950 text-amber-100 border border-amber-800";
-                iconClass = "fa-triangle-exclamation text-amber-400";
-            } else if (type === 'error') {
-                bgClass = "bg-rose-950 text-rose-100 border border-rose-800";
-                iconClass = "fa-circle-xmark text-rose-400";
-            }
-
-            toast.className = `p-4 rounded-xl shadow-xl flex items-center gap-3 text-xs font-bold animate-fade-in ${bgClass}`;
-            toast.innerHTML = `
-                <i class="fa-solid ${iconClass} text-lg"></i>
-                <span class="flex-1">${message}</span>
-                <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            `;
-
-            container.appendChild(toast);
-
-            setTimeout(() => {
-                if (toast.parentElement) toast.remove();
-            }, 4500);
-        }
-
-        // Application Initialization on Page Load
-        window.onload = function() {
-            // Set default entry date input to today
-            const todayStr = new Date().toISOString().split('T')[0];
-            const dateInput = document.getElementById('emp-entry-date');
-            if (dateInput) dateInput.value = todayStr;
-
-            const aptContractEndInput = document.getElementById('apt-contract-end');
-            if (aptContractEndInput) aptContractEndInput.value = "2027-12-31";
-
-            // Initialize views and stats
-            updateGlobalStatsAndVisuals();
-            renderReportTable();
-            renderApartmentsList();
-            renderExpenseApartmentOptions();
-            renderRequestsList();
-            updateIframeCode();
-        };
-    </script>
+    <div>
+      <label class="block text-xs font-bold mb-1">كلمة السر</label>
+      <input id="login-pass" type="password" required dir="ltr" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+    </div>
+    <button id="login-btn" type="submit" class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition">دخول</button>
+    <button type="button" onclick="forgotPassword()" class="w-full text-xs text-brand-600 hover:underline">نسيت كلمة السر؟</button>
+  </form>
+</div>
+
+<!-- التطبيق -->
+<div id="app" class="hidden flex-1 flex flex-col">
+<header class="bg-gradient-to-r from-slate-900 via-slate-800 to-brand-900 text-white shadow-lg sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-20">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 bg-brand-500/20 border border-brand-400/30 rounded-2xl flex items-center justify-center text-brand-400"><i class="fa-solid fa-building-user text-2xl"></i></div>
+        <div>
+          <h1 class="text-lg font-bold">منظومة إسكان السكن الإداري</h1>
+          <p class="text-xs text-slate-300 hidden sm:block">تنسيق وتوزيع شقق الموظفين والمهندسين والعمال</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="hidden md:flex flex-col text-xs bg-slate-800/50 border border-slate-700/50 px-3 py-1.5 rounded-xl">
+          <span class="text-slate-400">الأسرة الشاغرة:</span>
+          <span id="global-free-beds" class="font-extrabold text-emerald-400 text-sm">--</span>
+        </div>
+        <div class="bg-slate-800/80 border border-slate-700/60 rounded-xl px-3 py-2 flex items-center gap-3">
+          <div class="text-xs">
+            <span id="current-user-role" class="block text-slate-400"></span>
+            <span id="current-user-display" class="font-bold text-brand-300"></span>
+          </div>
+          <button onclick="doLogout()" class="bg-slate-700 hover:bg-rose-600 text-white text-xs px-2.5 py-1.5 rounded-lg transition flex items-center gap-1.5">
+            <i class="fa-solid fa-right-from-bracket"></i><span>خروج</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <nav id="tabs-nav" class="no-print flex flex-wrap gap-2 mb-6 bg-slate-200/60 p-1.5 rounded-2xl border border-slate-300/60"></nav>
+  <div id="toast-container" class="mb-4 space-y-2"></div>
+
+  <!-- تسكين -->
+  <div id="tab-allocation" class="tab-content hidden animate-fade-in">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white rounded-2xl p-6 shadow-sm border border-slate-200 h-fit">
+        <div class="flex items-center gap-3 pb-4 mb-5 border-b border-slate-100">
+          <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center text-lg"><i class="fa-solid fa-user-check"></i></div>
+          <div>
+            <h2 class="text-lg font-bold">تسجيل موظف جديد للتسكين</h2>
+            <p class="text-xs text-slate-500">يُوجَّه تلقائياً للشقة المناسبة حسب الوظيفة</p>
+          </div>
+        </div>
+        <form id="add-employee-form" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold mb-1">اسم الموظف <span class="text-rose-500">*</span></label>
+            <input type="text" id="emp-name" required placeholder="مثال: أحمد محمد محمود علي" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1">الوظيفة <span class="text-rose-500">*</span></label>
+            <select id="emp-role" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <option value="" disabled selected>-- اختر الوظيفة --</option>
+              <optgroup label="فئة العمال والفنيين">
+                <option value="عامل">عامل تنفيذ</option>
+                <option value="فني كهرباء">فني كهرباء</option>
+                <option value="فني ميكانيكا">فني ميكانيكا</option>
+                <option value="سائق">سائق معدات / سيارات</option>
+                <option value="أمن">حارس / أمن</option>
+              </optgroup>
+              <optgroup label="فئة المهندسين والإشراف">
+                <option value="مهندس موقع">مهندس موقع</option>
+                <option value="مهندس مكتب فني">مهندس مكتب فني</option>
+                <option value="محاسب موقع">محاسب موقع</option>
+                <option value="مشرف تنفيذ">مشرف تنفيذ</option>
+                <option value="أخصائي جودة">أخصائي جودة والسلامة</option>
+              </optgroup>
+              <optgroup label="فئة المديرين والقيادات">
+                <option value="مدير مشروع">مدير مشروع</option>
+                <option value="مدير تنفيذي">مدير تنفيذي</option>
+                <option value="رئيس قطاع">رئيس قطاع</option>
+                <option value="مستشار فنّي">مستشار فنّي</option>
+              </optgroup>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1">تاريخ الدخول <span class="text-rose-500">*</span></label>
+            <input type="date" id="emp-entry-date" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+          <div class="p-3.5 bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-between">
+            <span class="text-xs text-slate-600 font-semibold">نوع الشقة المستهدفة:</span>
+            <span id="housing-type-tag" class="px-3 py-1 rounded-full text-xs font-bold bg-slate-200 text-slate-700">لم يحدد</span>
+          </div>
+          <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-600/30 transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-user-plus"></i><span>تسكين الموظف وحفظ البيانات</span>
+          </button>
+        </form>
+      </div>
+
+      <div class="lg:col-span-7 space-y-6">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl"><i class="fa-solid fa-users"></i></div>
+            <div><span class="text-xs text-slate-500 block">شقق العمال</span><span id="stat-workers-avail" class="text-lg font-bold">--</span></div>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl"><i class="fa-solid fa-user-gear"></i></div>
+            <div><span class="text-xs text-slate-500 block">شقق المهندسين</span><span id="stat-engineers-avail" class="text-lg font-bold">--</span></div>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl"><i class="fa-solid fa-user-tie"></i></div>
+            <div><span class="text-xs text-slate-500 block">شقق المديرين</span><span id="stat-managers-avail" class="text-lg font-bold">--</span></div>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <h3 class="text-sm font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-bed text-brand-500"></i><span>حالة الشقق والسراير الحالية</span></h3>
+          <div id="beds-visual-container" class="space-y-4 max-h-[380px] overflow-y-auto custom-scrollbar pr-1"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- التقرير -->
+  <div id="tab-report" class="tab-content hidden animate-fade-in">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="p-5 border-b border-slate-200 bg-slate-50/70 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div>
+          <h2 class="text-base font-bold">تقرير توزيعة الشقق والإسكان</h2>
+          <p id="report-subtitle" class="text-xs text-slate-500"></p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <div class="relative flex-1 sm:w-64">
+            <i class="fa-solid fa-magnifying-glass absolute right-3 top-3 text-slate-400 text-xs"></i>
+            <input type="text" id="report-search" placeholder="بحث بالاسم أو رقم الشقة..." class="w-full pr-9 pl-3 py-2 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+          <select id="report-filter-type" class="px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs">
+            <option value="ALL">جميع أنواع الشقق</option>
+            <option value="شقة عمال">شقق العمال</option>
+            <option value="شقة مهندسين">شقق المهندسين</option>
+            <option value="شقة مديرين">شقق المديرين</option>
+          </select>
+          <button onclick="exportCSV()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-file-csv"></i><span>تصدير Excel / Sheets</span></button>
+          <button onclick="window.print()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-print"></i><span>طباعة</span></button>
+        </div>
+      </div>
+      <div class="overflow-x-auto custom-scrollbar">
+        <table class="w-full text-right text-xs">
+          <thead><tr id="report-thead" class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200"></tr></thead>
+          <tbody id="report-table-body" class="divide-y divide-slate-100 text-slate-700"></tbody>
+        </table>
+      </div>
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap justify-between items-center text-xs font-bold text-slate-600">
+        <span id="report-total-records"></span>
+        <span id="report-total-rent" class="text-brand-700"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- الإعدادات -->
+  <div id="tab-settings" class="tab-content hidden animate-fade-in">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-fit">
+        <div class="flex items-center gap-3 pb-3 mb-4 border-b border-slate-100">
+          <div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center"><i class="fa-solid fa-building-circle-check"></i></div>
+          <div>
+            <h3 id="apt-form-title" class="text-sm font-bold">إضافة شقة جديدة</h3>
+            <p class="text-xs text-slate-500">تحديد الطاقة الاستيعابية والإيجار والمشرف</p>
+          </div>
+        </div>
+        <form id="apt-manage-form" class="space-y-3.5 text-xs">
+          <input type="hidden" id="apt-id-hidden">
+          <div>
+            <label class="block font-bold mb-1">اسم / رقم الشقة <span class="text-rose-500">*</span></label>
+            <input type="text" id="apt-number" required placeholder="مثال: شقة 105 - عمائر الأمل" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+          <div>
+            <label class="block font-bold mb-1">نوع الشقة <span class="text-rose-500">*</span></label>
+            <select id="apt-type" required class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl">
+              <option value="شقة عمال">شقة عمال</option>
+              <option value="شقة مهندسين">شقة مهندسين</option>
+              <option value="شقة مديرين">شقة مديرين</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold mb-1">الموقع / العنوان</label>
+            <input type="text" id="apt-location" placeholder="مثال: التجمع الخامس - المنطقة 3" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold mb-1">عدد السراير <span class="text-rose-500">*</span></label>
+              <input type="number" id="apt-beds" min="1" max="30" required value="4" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl">
+            </div>
+            <div>
+              <label class="block font-bold mb-1">الإيجار (ج.م) <span class="text-rose-500">*</span></label>
+              <input type="number" id="apt-rent" min="0" step="100" required value="8000" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold mb-1">نهاية العقد <span class="text-rose-500">*</span></label>
+              <input type="date" id="apt-contract-end" required class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl">
+            </div>
+            <div>
+              <label class="block font-bold mb-1">المشرف المسؤول</label>
+              <select id="apt-supervisor" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl"></select>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-500">قائمة المشرفين تظهر من تاب "إدارة المستخدمين" (المستخدمون بصلاحية مشرف).</p>
+          <div class="pt-2 flex gap-2">
+            <button type="submit" id="btn-save-apt" class="flex-1 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl"><i class="fa-solid fa-floppy-disk ml-1"></i> حفظ الشقة</button>
+            <button type="button" onclick="resetAptForm()" class="px-3 py-2.5 bg-slate-200 hover:bg-slate-300 font-bold rounded-xl">جديد</button>
+          </div>
+        </form>
+      </div>
+      <div class="lg:col-span-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+          <h3 class="text-sm font-bold">الشقق المسجلة</h3>
+          <span id="apt-count-badge" class="text-xs bg-brand-50 text-brand-700 font-bold px-2.5 py-1 rounded-lg"></span>
+        </div>
+        <div id="apartments-list-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[560px] overflow-y-auto custom-scrollbar pr-1"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- الطلبات -->
+  <div id="tab-requests" class="tab-content hidden animate-fade-in">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-12 grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center"><i class="fa-solid fa-clock-rotate-left"></i></div>
+          <div><span class="text-xs text-slate-500 block">قيد الانتظار</span><span id="kpi-pending-reqs" class="text-lg font-bold">0</span></div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><i class="fa-solid fa-circle-check"></i></div>
+          <div><span class="text-xs text-slate-500 block">معتمدة</span><span id="kpi-approved-reqs" class="text-lg font-bold">0</span></div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+          <div><span class="text-xs text-slate-500 block">مصاريف الصيانة</span><span id="kpi-maintenance-sum" class="text-lg font-bold">0</span></div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center"><i class="fa-solid fa-bolt"></i></div>
+          <div><span class="text-xs text-slate-500 block">الفواتير والمياه</span><span id="kpi-utilities-sum" class="text-lg font-bold">0</span></div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-fit">
+        <h3 class="text-sm font-bold pb-3 mb-4 border-b border-slate-100 flex items-center gap-2"><i class="fa-solid fa-file-invoice-dollar text-brand-600"></i><span>تسجيل طلب صيانة / مصروفات</span></h3>
+        <form id="expense-form" class="space-y-3.5 text-xs">
+          <div>
+            <label class="block font-bold mb-1">الشقة <span class="text-rose-500">*</span></label>
+            <select id="req-apt-id" required class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl"></select>
+          </div>
+          <div>
+            <label class="block font-bold mb-1">نوع البند <span class="text-rose-500">*</span></label>
+            <select id="req-type" required class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl">
+              <option value="صيانة سباكة/كهرباء">صيانة سباكة / كهرباء</option>
+              <option value="شراء أثاث/أجهزة">شراء أثاث / أجهزة جديدة</option>
+              <option value="فواتير كهرباء ومياه">فواتير كهرباء ومياه ونظافة</option>
+              <option value="تجديد/دهانات">تجديدات ودهانات</option>
+              <option value="مصاريف نثرية أخرى">مصاريف نثرية أخرى</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold mb-1">المبلغ (ج.م) <span class="text-rose-500">*</span></label>
+            <input type="number" id="req-amount" required min="1" step="any" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-bold mb-1">الوصف والتفاصيل</label>
+            <textarea id="req-desc" rows="3" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl"></textarea>
+          </div>
+          <div>
+            <label class="block font-bold mb-1">مرفق (صورة الفاتورة / المصروف)</label>
+            <input type="file" id="req-file" accept="image/*,application/pdf" class="w-full text-xs file:ml-2 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-slate-200 file:font-bold">
+            <p class="text-[11px] text-slate-500 mt-1">الصور تُضغط تلقائياً. ملفات PDF حتى 600 كيلوبايت.</p>
+          </div>
+          <button type="submit" id="req-submit-btn" class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl"><i class="fa-solid fa-paper-plane ml-1"></i> إرسال الطلب</button>
+        </form>
+      </div>
+
+      <div class="lg:col-span-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <h3 class="text-sm font-bold pb-3 mb-4 border-b border-slate-100">سجل طلبات ومصاريف الشقق</h3>
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-right text-xs">
+            <thead><tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+              <th class="p-2.5">الشقة</th><th class="p-2.5">البند</th><th class="p-2.5">المبلغ</th><th class="p-2.5">التاريخ</th><th class="p-2.5">مقدم الطلب</th><th class="p-2.5">مرفق</th><th class="p-2.5">الحالة</th><th class="p-2.5 text-center">إجراءات</th>
+            </tr></thead>
+            <tbody id="requests-table-body" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- التصدير والتضمين -->
+  <div id="tab-integration" class="tab-content hidden animate-fade-in">
+    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 max-w-3xl text-xs">
+      <h3 class="text-sm font-bold flex items-center gap-2"><i class="fa-solid fa-globe text-blue-600"></i> رابط الموقع وتضمينه في Google Sites</h3>
+      <div>
+        <label class="block font-bold mb-1">كود التضمين (iframe)</label>
+        <textarea id="iframe-code-output" readonly rows="3" dir="ltr" class="w-full px-3 py-2 bg-slate-800 text-slate-100 font-mono text-[11px] rounded-xl"></textarea>
+      </div>
+      <button onclick="copyIframeCode()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl"><i class="fa-solid fa-copy ml-1"></i> نسخ الكود</button>
+      <p class="text-slate-600 leading-6">في Google Sites: Insert ← Embed ← Embed code ← الصق الكود. ملاحظة: بعض المتصفحات قد تمنع تسجيل الدخول داخل الـ iframe، والأضمن وضع <b>زر / رابط</b> مباشر للموقع داخل Google Sites.</p>
+      <p class="text-slate-600 leading-6">لنقل التقرير إلى Google Sheets: من تاب التقرير اضغط "تصدير Excel / Sheets" ثم افتح الملف في Google Sheets (File ← Import).</p>
+    </div>
+  </div>
+
+  <!-- المستخدمين -->
+  <div id="tab-users" class="tab-content hidden animate-fade-in">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-fit">
+        <div class="flex items-center gap-3 pb-3 mb-4 border-b border-slate-100">
+          <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center"><i class="fa-solid fa-user-plus"></i></div>
+          <div><h3 class="text-sm font-bold">إضافة مستخدم</h3><p class="text-xs text-slate-500">إنشاء حساب بإيميل وكلمة سر وصلاحية</p></div>
+        </div>
+        <form id="add-user-form" class="space-y-3.5 text-xs">
+          <div>
+            <label class="block font-bold mb-1">الاسم <span class="text-rose-500">*</span></label>
+            <input type="text" id="new-user-name" required class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-bold mb-1">البريد الإلكتروني (Gmail) <span class="text-rose-500">*</span></label>
+            <input type="email" id="new-user-email" required dir="ltr" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-bold mb-1">كلمة السر (6 أحرف على الأقل) <span class="text-rose-500">*</span></label>
+            <input type="text" id="new-user-pass" required minlength="6" dir="ltr" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-bold mb-1">الصلاحية <span class="text-rose-500">*</span></label>
+            <select id="new-user-role" required class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl">
+              <option value="supervisor">مشرف — يرى شقته فقط (بدون الإيجار) ويرفع الطلبات</option>
+              <option value="viewer">مشاهدة فقط — يرى كل التقرير بدون الإيجار</option>
+              <option value="admin">مدير النظام — كل الصلاحيات</option>
+            </select>
+          </div>
+          <button type="submit" id="add-user-btn" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl"><i class="fa-solid fa-user-check ml-1"></i> إضافة المستخدم</button>
+        </form>
+      </div>
+      <div class="lg:col-span-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <h3 class="text-sm font-bold pb-3 mb-4 border-b border-slate-100">المستخدمون المصرّح لهم</h3>
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-right text-xs">
+            <thead><tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+              <th class="p-3">الاسم</th><th class="p-3">الإيميل</th><th class="p-3">الصلاحية</th><th class="p-3 text-center">إجراءات</th>
+            </tr></thead>
+            <tbody id="users-table-body" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-3">الحذف يسحب صلاحية الدخول فوراً. "إرسال رابط كلمة سر" يرسل للمستخدم إيميل لتعيين كلمة سر جديدة.</p>
+      </div>
+    </div>
+  </div>
+</main>
+</div>
+
+<!-- نافذة تأكيد -->
+<div id="modal-confirm" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+  <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4">
+    <h3 class="font-bold text-base" id="confirm-title">تأكيد</h3>
+    <p class="text-xs text-slate-600 leading-6" id="confirm-text"></p>
+    <div class="flex gap-2 justify-end">
+      <button onclick="closeConfirm()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-xl text-xs font-bold">إلغاء</button>
+      <button id="confirm-ok" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold">تأكيد</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* ====================== الإعدادات — عدّل هذا الجزء فقط ====================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyC_RBaOezMtFGVoQ38CJW6hBlVcqexkXdo",
+  authDomain: "obakhousing-e13aa.firebaseapp.com",
+  projectId: "obakhousing-e13aa",
+  storageBucket: "obakhousing-e13aa.firebasestorage.app",
+  messagingSenderId: "162458550031",
+  appId: "1:162458550031:web:5062a18771c1d29856487a"
+};
+// إيميل مدير النظام الأول (لازم يكون نفس الإيميل في ملف firestore.rules)
+const ADMIN_EMAIL = "obakwajih@gmail.com";
+/* ============================================================================ */
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = n => Number(n || 0).toLocaleString('en-US');
+
+if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+  $('setup-screen').classList.remove('hidden');
+  throw new Error("Firebase config not set");
+}
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let P = null;                 // ملف المستخدم الحالي
+let S = { apts: [], fin: {}, emps: [], reqs: [], users: [] };
+let unsubs = [];
+let currentTab = null;
+
+const ROLE_LABEL = { admin: 'مدير النظام', supervisor: 'مشرف', viewer: 'مشاهدة' };
+const TABS = [
+  { key: 'allocation',  label: 'التسكين وإدخال الموظفين', icon: 'fa-user-plus',   roles: ['admin'] },
+  { key: 'report',      label: 'تقرير توزيع الشقق',       icon: 'fa-table-cells', roles: ['admin','supervisor','viewer'] },
+  { key: 'settings',    label: 'إعدادات الشقق',           icon: 'fa-sliders',     roles: ['admin'] },
+  { key: 'requests',    label: 'طلبات ومصاريف الشقق',     icon: 'fa-receipt',     roles: ['admin','supervisor'] },
+  { key: 'integration', label: 'التضمين والتصدير',        icon: 'fa-link',        roles: ['admin'] },
+  { key: 'users',       label: 'إدارة المستخدمين',        icon: 'fa-users-gear',  roles: ['admin'] },
+];
+
+/* ---------------------- أدوات عامة ---------------------- */
+function toast(msg, type = 'info') {
+  const colors = { success: 'bg-emerald-950 text-emerald-100 border-emerald-800', warning: 'bg-amber-950 text-amber-100 border-amber-800', error: 'bg-rose-950 text-rose-100 border-rose-800', info: 'bg-slate-900 text-white border-slate-700' };
+  const el = document.createElement('div');
+  el.className = `p-4 rounded-xl shadow-xl flex items-center gap-3 text-xs font-bold animate-fade-in border ${colors[type] || colors.info}`;
+  el.innerHTML = `<span class="flex-1">${esc(msg)}</span><button class="opacity-70 hover:opacity-100">✕</button>`;
+  el.querySelector('button').onclick = () => el.remove();
+  $('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 5500);
+}
+let confirmCb = null;
+function askConfirm(title, text, cb) {
+  $('confirm-title').textContent = title; $('confirm-text').textContent = text;
+  confirmCb = cb; $('modal-confirm').classList.remove('hidden');
+}
+window.closeConfirm = () => { $('modal-confirm').classList.add('hidden'); confirmCb = null; };
+$('confirm-ok').onclick = async () => { const cb = confirmCb; window.closeConfirm(); if (cb) await cb(); };
+const errMsg = e => (e && e.code === 'permission-denied') ? 'ليس لديك صلاحية لهذا الإجراء' : (e && e.message) || 'حدث خطأ';
+
+function getCategoryForRole(role) {
+  if (["عامل","فني كهرباء","فني ميكانيكا","سائق","أمن"].includes(role)) return "شقة عمال";
+  if (["مهندس موقع","مهندس مكتب فني","محاسب موقع","مشرف تنفيذ","أخصائي جودة"].includes(role)) return "شقة مهندسين";
+  if (["مدير مشروع","مدير تنفيذي","رئيس قطاع","مستشار فنّي"].includes(role)) return "شقة مديرين";
+  return "شقة عمال";
+}
+const typeClass = t => t === 'شقة عمال' ? 'bg-blue-100 text-blue-700' : t === 'شقة مهندسين' ? 'bg-purple-100 text-purple-700' : 'bg-amber-100 text-amber-700';
+const sortedApts = () => [...S.apts].sort((a, b) => a.number.localeCompare(b.number, 'ar', { numeric: true }));
+const occupantsOf = id => S.emps.filter(e => e.aptId === id).sort((a, b) => a.bedIndex - b.bedIndex);
+const isAdmin = () => P && P.role === 'admin';
+
+/* ---------------------- الدخول والخروج ---------------------- */
+$('login-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const box = $('login-error'); box.classList.add('hidden');
+  $('login-btn').disabled = true; $('login-btn').textContent = 'جارٍ الدخول...';
+  try {
+    await signInWithEmailAndPassword(auth, $('login-email').value.trim(), $('login-pass').value);
+  } catch (err) {
+    const m = ['auth/invalid-credential','auth/wrong-password','auth/user-not-found','auth/invalid-email'].includes(err.code)
+      ? 'الإيميل أو كلمة السر غير صحيحة' : err.code === 'auth/too-many-requests' ? 'محاولات كثيرة، حاول لاحقاً' : 'تعذر تسجيل الدخول: ' + err.code;
+    box.textContent = m; box.classList.remove('hidden');
+  }
+  $('login-btn').disabled = false; $('login-btn').textContent = 'دخول';
+});
+window.forgotPassword = async () => {
+  const email = $('login-email').value.trim();
+  const box = $('login-error');
+  if (!email) { box.textContent = 'اكتب إيميلك أولاً ثم اضغط "نسيت كلمة السر"'; box.classList.remove('hidden'); return; }
+  try { await sendPasswordResetEmail(auth, email); box.className = 'p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold'; box.textContent = 'تم إرسال رابط تعيين كلمة السر لإيميلك'; }
+  catch { box.textContent = 'تعذر الإرسال، تأكد من الإيميل'; box.classList.remove('hidden'); }
+};
+window.doLogout = () => signOut(auth);
+
+onAuthStateChanged(auth, async user => {
+  unsubs.forEach(u => u()); unsubs = [];
+  P = null; S = { apts: [], fin: {}, emps: [], reqs: [], users: [] };
+  if (!user) {
+    $('app').classList.add('hidden'); $('login-screen').classList.remove('hidden');
+    return;
+  }
+  try {
+    const ref = doc(db, 'users', user.uid);
+    let snap = await getDoc(ref);
+    if (!snap.exists()) {
+      if (user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+        await setDoc(ref, { name: 'مدير النظام', email: user.email, role: 'admin', createdAt: Date.now() });
+        snap = await getDoc(ref);
+      } else {
+        await signOut(auth);
+        const box = $('login-error'); box.textContent = 'هذا الحساب غير مفعّل في النظام. تواصل مع مدير النظام.'; box.classList.remove('hidden');
+        return;
+      }
+    }
+    P = { uid: user.uid, ...snap.data() };
+  } catch (err) {
+    await signOut(auth);
+    const box = $('login-error'); box.textContent = 'تعذر تحميل الحساب: ' + errMsg(err); box.classList.remove('hidden');
+    return;
+  }
+  startApp();
+});
+
+/* ---------------------- تشغيل التطبيق ---------------------- */
+function listen(q, cb) {
+  unsubs.push(onSnapshot(q, snap => { cb(snap.docs.map(d => ({ id: d.id, ...d.data() }))); renderAll(); },
+    err => toast('خطأ في تحميل البيانات: ' + errMsg(err), 'error')));
+}
+function startApp() {
+  $('login-screen').classList.add('hidden'); $('app').classList.remove('hidden');
+  $('current-user-display').textContent = P.name;
+  $('current-user-role').textContent = ROLE_LABEL[P.role] || P.role;
+
+  if (P.role === 'admin') {
+    listen(collection(db, 'apartments'), d => S.apts = d);
+    listen(collection(db, 'apartmentsFinance'), d => { S.fin = {}; d.forEach(x => S.fin[x.id] = x.rent); });
+    listen(collection(db, 'employees'), d => S.emps = d);
+    listen(collection(db, 'requests'), d => S.reqs = d);
+    listen(collection(db, 'users'), d => S.users = d);
+  } else if (P.role === 'viewer') {
+    listen(collection(db, 'apartments'), d => S.apts = d);
+    listen(collection(db, 'employees'), d => S.emps = d);
+  } else { // supervisor
+    listen(query(collection(db, 'apartments'), where('supervisorUid', '==', P.uid)), d => S.apts = d);
+    listen(query(collection(db, 'employees'), where('supervisorUid', '==', P.uid)), d => S.emps = d);
+    listen(query(collection(db, 'requests'), where('supervisorUid', '==', P.uid)), d => S.reqs = d);
+  }
+
+  const allowed = TABS.filter(t => t.roles.includes(P.role));
+  $('tabs-nav').innerHTML = allowed.map(t =>
+    `<button onclick="switchTab('${t.key}')" id="tab-btn-${t.key}" class="tab-btn flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-white/60 transition flex items-center justify-center gap-2"><i class="fa-solid ${t.icon}"></i><span>${t.label}</span></button>`).join('');
+  $('emp-entry-date').value = new Date().toISOString().split('T')[0];
+  $('apt-contract-end').value = '';
+  $('iframe-code-output').value = `<iframe src="${location.origin + location.pathname}" width="100%" height="750" style="border:none;border-radius:16px" title="منظومة إدارة السكن"></iframe>`;
+  window.switchTab(allowed[0].key);
+}
+window.switchTab = key => {
+  currentTab = key;
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  $('tab-' + key).classList.remove('hidden');
+  const b = $('tab-btn-' + key); if (b) b.classList.add('active');
+  renderAll();
+};
+
+/* ---------------------- العرض ---------------------- */
+function renderAll() {
+  if (!P) return;
+  renderStats();
+  if (currentTab === 'allocation') renderBeds();
+  if (currentTab === 'report') renderReport();
+  if (currentTab === 'settings') { renderAptList(); renderSupervisorOptions(); }
+  if (currentTab === 'requests') { renderReqAptOptions(); renderRequests(); }
+  if (currentTab === 'users') renderUsers();
+}
+
+function renderStats() {
+  let w = 0, e = 0, m = 0, total = 0;
+  S.apts.forEach(a => {
+    const free = Math.max(0, a.totalBeds - occupantsOf(a.id).length);
+    total += free;
+    if (a.type === 'شقة عمال') w += free; else if (a.type === 'شقة مهندسين') e += free; else m += free;
+  });
+  $('global-free-beds').textContent = `${total} سرير`;
+  $('stat-workers-avail').textContent = `${w} سرير شاغر`;
+  $('stat-engineers-avail').textContent = `${e} سرير شاغر`;
+  $('stat-managers-avail').textContent = `${m} سرير شاغر`;
+}
+
+function renderBeds() {
+  const c = $('beds-visual-container');
+  if (!S.apts.length) { c.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">لا توجد شقق. أضف شقة من تاب "إعدادات الشقق".</div>`; return; }
+  c.innerHTML = sortedApts().map(a => {
+    const occ = occupantsOf(a.id);
+    let slots = '';
+    for (let i = 1; i <= a.totalBeds; i++) {
+      const o = occ.find(x => x.bedIndex === i);
+      slots += o
+        ? `<div class="p-2 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-between text-xs"><div class="flex items-center gap-2 overflow-hidden"><i class="fa-solid fa-bed text-emerald-600"></i><span class="font-bold truncate">${esc(o.name)}</span></div><span class="text-[10px] bg-emerald-200/80 text-emerald-800 px-2 py-0.5 rounded-md shrink-0">${esc(o.role)}</span></div>`
+        : `<div class="p-2 bg-white border border-dashed border-slate-300 rounded-lg flex items-center gap-2 text-xs text-slate-400"><i class="fa-solid fa-bed text-slate-300"></i><span>سرير ${i} (شاغر)</span></div>`;
+    }
+    return `<div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+        <div><span class="font-bold text-xs">${esc(a.number)}</span><span class="text-[11px] text-slate-500 block">${esc(a.location)}</span></div>
+        <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg ${typeClass(a.type)}">${esc(a.type)} (${occ.length}/${a.totalBeds})</span>
+      </div><div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${slots}</div></div>`;
+  }).join('');
+}
+
+function contractBadge(d) {
+  if (!d) return '--';
+  const days = Math.floor((new Date(d) - new Date()) / 864e5);
+  if (days < 0) return `<span class="text-rose-700 font-bold">${esc(d)} (منتهي)</span>`;
+  if (days <= 60) return `<span class="text-amber-700 font-bold">${esc(d)} (بعد ${days} يوم)</span>`;
+  return esc(d);
+}
+
+function reportRows() {
+  const q = $('report-search').value.trim().toLowerCase();
+  const ft = $('report-filter-type').value;
+  const rows = [];
+  sortedApts().forEach(a => {
+    if (ft !== 'ALL' && a.type !== ft) return;
+    const occ = occupantsOf(a.id);
+    const match = !q || a.number.toLowerCase().includes(q) || (a.location || '').toLowerCase().includes(q) ||
+      occ.some(o => o.name.toLowerCase().includes(q) || o.role.toLowerCase().includes(q));
+    if (!match) return;
+    rows.push({ a, occ });
+  });
+  return rows;
+}
+
+function renderReport() {
+  const admin = isAdmin();
+  $('report-subtitle').textContent = P.role === 'supervisor' ? 'الشقق التي تشرف عليها فقط' : 'كافة الشقق والساكنين';
+  $('report-thead').innerHTML = ['رقم الشقة','نوع الشقة + مكانها','عدد السراير','الاسم','الوظيفة','تاريخ الدخول', ...(admin ? ['قيمة الإيجار'] : []), 'نهاية العقد','المشرف المسؤول', ...(admin ? ['إجراءات'] : [])]
+    .map(h => `<th class="p-3.5 whitespace-nowrap ${h==='إجراءات'?'text-center no-print':''}">${h}</th>`).join('');
+  const rows = reportRows();
+  let rent = 0, people = 0;
+  const html = rows.map(({ a, occ }) => {
+    rent += Number(S.fin[a.id] || 0);
+    people += occ.length;
+    const rentCell = admin ? `<td class="p-3.5 font-mono font-bold">${fmt(S.fin[a.id])} ج.م</td>` : '';
+    const common = idx => `
+      <td class="p-3.5 font-bold">${idx === 0 ? esc(a.number) : '<span class="text-slate-300">↳</span>'}</td>
+      <td class="p-3.5">${idx === 0 ? `${esc(a.type)} - <span class="text-slate-500">${esc(a.location)}</span>` : ''}</td>
+      <td class="p-3.5 text-center">${idx === 0 ? `<span class="px-2 py-1 rounded-md text-[10px] bg-slate-200 font-bold">${occ.length} / ${a.totalBeds}</span>` : ''}</td>`;
+    const tail = idx => `${idx === 0 ? rentCell : (admin ? '<td></td>' : '')}
+      <td class="p-3.5">${idx === 0 ? contractBadge(a.contractEnd) : ''}</td>
+      <td class="p-3.5">${idx === 0 ? esc(a.supervisorName || '--') : ''}</td>`;
+    if (!occ.length) {
+      return `<tr class="hover:bg-slate-50">${common(0)}<td class="p-3.5 text-slate-400 italic">-- لا يوجد ساكنين --</td><td class="p-3.5 text-slate-400">--</td><td></td>${tail(0)}${admin ? '<td class="no-print"></td>' : ''}</tr>`;
+    }
+    return occ.map((e, i) => `<tr class="hover:bg-slate-50">${common(i)}
+      <td class="p-3.5 font-bold text-brand-900">${esc(e.name)}</td>
+      <td class="p-3.5"><span class="bg-slate-100 px-2 py-0.5 rounded">${esc(e.role)}</span></td>
+      <td class="p-3.5">${esc(e.entryDate)}</td>
+      ${tail(i)}
+      ${admin ? `<td class="p-3.5 text-center no-print"><button onclick="evictEmp('${e.id}')" class="px-2 py-1 text-rose-600 hover:bg-rose-50 rounded-lg font-bold"><i class="fa-solid fa-user-xmark"></i> إخلاء</button></td>` : ''}</tr>`).join('');
+  }).join('');
+  $('report-table-body').innerHTML = html || `<tr><td colspan="10" class="p-6 text-center text-slate-400">لا توجد بيانات</td></tr>`;
+  $('report-total-records').textContent = `إجمالي الساكنين: ${people} موظف`;
+  $('report-total-rent').textContent = admin ? `إجمالي الإيجار الشهري: ${fmt(rent)} ج.م` : '';
+}
+$('report-search').addEventListener('input', renderReport);
+$('report-filter-type').addEventListener('change', renderReport);
+
+window.exportCSV = () => {
+  const admin = isAdmin();
+  const head = ['رقم الشقة','نوع الشقة','المكان','عدد السراير','الاسم','الوظيفة','تاريخ الدخول', ...(admin ? ['قيمة الإيجار'] : []), 'نهاية العقد','المشرف'];
+  const lines = [head];
+  reportRows().forEach(({ a, occ }) => {
+    const base = (e) => [a.number, a.type, a.location, a.totalBeds, e ? e.name : '', e ? e.role : '', e ? e.entryDate : '', ...(admin ? [S.fin[a.id] ?? ''] : []), a.contractEnd, a.supervisorName || ''];
+    if (!occ.length) lines.push(base(null)); else occ.forEach(e => lines.push(base(e)));
+  });
+  const csv = '\ufeff' + lines.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = 'تقرير-الإسكان.csv'; a.click();
+};
+
+/* ---------------------- التسكين ---------------------- */
+$('emp-role').addEventListener('change', () => {
+  const cat = getCategoryForRole($('emp-role').value);
+  const t = $('housing-type-tag'); t.textContent = cat; t.className = 'px-3 py-1 rounded-full text-xs font-bold ' + typeClass(cat);
+});
+$('add-employee-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const name = $('emp-name').value.trim(), role = $('emp-role').value, entryDate = $('emp-entry-date').value;
+  if (!name || !role || !entryDate) return toast('يرجى تعبئة كل الحقول', 'warning');
+  const cat = getCategoryForRole(role);
+  let target = null, bed = -1;
+  for (const a of sortedApts().filter(x => x.type === cat)) {
+    const occ = occupantsOf(a.id);
+    if (occ.length < a.totalBeds) {
+      const used = occ.map(o => o.bedIndex);
+      for (let i = 1; i <= a.totalBeds; i++) if (!used.includes(i)) { bed = i; break; }
+      if (bed !== -1) { target = a; break; }
+    }
+  }
+  if (!target) return toast(`لا توجد أسرة شاغرة حالياً في (${cat}). أضف شقة جديدة أو زوّد السراير من الإعدادات.`, 'error');
+  try {
+    const ref = doc(collection(db, 'employees'));
+    await setDoc(ref, { name, role, category: cat, entryDate, aptId: target.id, bedIndex: bed, supervisorUid: target.supervisorUid || '', createdAt: Date.now() });
+    $('add-employee-form').reset(); $('emp-entry-date').value = new Date().toISOString().split('T')[0];
+    $('housing-type-tag').textContent = 'لم يحدد'; $('housing-type-tag').className = 'px-3 py-1 rounded-full text-xs font-bold bg-slate-200 text-slate-700';
+    toast(`تم تسكين (${name}) في ${target.number} - سرير ${bed}`, 'success');
+  } catch (err) { toast(errMsg(err), 'error'); }
+});
+window.evictEmp = id => {
+  const emp = S.emps.find(x => x.id === id); if (!emp) return;
+  askConfirm('إخلاء موظف', `سيتم إخلاء (${emp.name}) وتحرير السرير. متأكد؟`, async () => {
+    try { await deleteDoc(doc(db, 'employees', id)); toast('تم الإخلاء', 'success'); } catch (err) { toast(errMsg(err), 'error'); }
+  });
+};
+
+/* ---------------------- إعدادات الشقق ---------------------- */
+function renderSupervisorOptions() {
+  const sel = $('apt-supervisor'); const cur = sel.value;
+  sel.innerHTML = `<option value="">-- بدون مشرف --</option>` + S.users.filter(u => u.role === 'supervisor').map(u => `<option value="${u.id}">${esc(u.name)}</option>`).join('');
+  sel.value = cur;
+}
+function renderAptList() {
+  $('apt-count-badge').textContent = `${S.apts.length} شقة`;
+  $('apartments-list-grid').innerHTML = sortedApts().map(a => {
+    const occ = occupantsOf(a.id).length, pct = Math.round(occ / a.totalBeds * 100);
+    return `<div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+      <div class="flex justify-between items-start"><div><h4 class="font-bold text-sm">${esc(a.number)}</h4><p class="text-xs text-slate-500">${esc(a.location)}</p></div>
+        <span class="text-xs font-bold px-2 py-1 rounded-lg ${typeClass(a.type)}">${esc(a.type)}</span></div>
+      <div class="space-y-1 text-xs"><div class="flex justify-between text-slate-600"><span>الإشغال (${occ}/${a.totalBeds})</span><span class="font-bold">${pct}%</span></div>
+        <div class="w-full bg-slate-200 rounded-full h-2"><div class="bg-brand-600 h-2 rounded-full" style="width:${pct}%"></div></div></div>
+      <div class="grid grid-cols-2 gap-2 text-[11px] bg-white p-2.5 rounded-lg border border-slate-200">
+        <div><span class="text-slate-400">الإيجار:</span> <strong>${fmt(S.fin[a.id])} ج.م</strong></div>
+        <div><span class="text-slate-400">العقد حتى:</span> <strong>${contractBadge(a.contractEnd)}</strong></div>
+        <div class="col-span-2"><span class="text-slate-400">المشرف:</span> <strong>${esc(a.supervisorName || 'غير محدد')}</strong></div></div>
+      <div class="flex gap-2 pt-1 border-t border-slate-200">
+        <button onclick="editApt('${a.id}')" class="flex-1 py-1.5 bg-slate-200 hover:bg-slate-300 font-bold rounded-lg text-xs"><i class="fa-solid fa-pen ml-1"></i> تعديل</button>
+        <button onclick="deleteApt('${a.id}')" class="py-1.5 px-3 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>
+      </div></div>`;
+  }).join('') || `<div class="col-span-2 p-6 text-center text-xs text-slate-400">لا توجد شقق بعد</div>`;
+}
+$('apt-manage-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const id = $('apt-id-hidden').value;
+  const beds = parseInt($('apt-beds').value);
+  if (id && occupantsOf(id).length > beds) return toast(`عدد السراير أقل من عدد الساكنين الحاليين (${occupantsOf(id).length}). أخلِ بعضهم أولاً.`, 'warning');
+  const supUid = $('apt-supervisor').value;
+  const sup = S.users.find(u => u.id === supUid);
+  const data = { number: $('apt-number').value.trim(), type: $('apt-type').value, location: $('apt-location').value.trim() || 'غير محدد',
+    totalBeds: beds, contractEnd: $('apt-contract-end').value, supervisorUid: supUid, supervisorName: sup ? sup.name : '' };
+  try {
+    const ref = id ? doc(db, 'apartments', id) : doc(collection(db, 'apartments'));
+    const batch = writeBatch(db);
+    batch.set(ref, data);
+    batch.set(doc(db, 'apartmentsFinance', ref.id), { rent: parseFloat($('apt-rent').value) || 0 });
+    if (id) { // تحديث المشرف في الموظفين والطلبات المرتبطة
+      S.emps.filter(x => x.aptId === id && x.supervisorUid !== supUid).forEach(x => batch.update(doc(db, 'employees', x.id), { supervisorUid: supUid }));
+      S.reqs.filter(x => x.aptId === id && x.supervisorUid !== supUid).forEach(x => batch.update(doc(db, 'requests', x.id), { supervisorUid: supUid }));
+    }
+    await batch.commit();
+    toast(id ? 'تم تعديل الشقة' : 'تمت إضافة الشقة', 'success');
+    window.resetAptForm();
+  } catch (err) { toast(errMsg(err), 'error'); }
+});
+window.editApt = id => {
+  const a = S.apts.find(x => x.id === id); if (!a) return;
+  $('apt-id-hidden').value = a.id; $('apt-number').value = a.number; $('apt-type').value = a.type; $('apt-location').value = a.location;
+  $('apt-beds').value = a.totalBeds; $('apt-rent').value = S.fin[a.id] ?? 0; $('apt-contract-end').value = a.contractEnd;
+  renderSupervisorOptions(); $('apt-supervisor').value = a.supervisorUid || '';
+  $('apt-form-title').textContent = 'تعديل بيانات الشقة'; window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+window.deleteApt = id => {
+  if (occupantsOf(id).length) return toast('لا يمكن حذف شقة بها ساكنون. أخلِهم أولاً.', 'warning');
+  askConfirm('حذف شقة', 'سيتم حذف الشقة نهائياً. متأكد؟', async () => {
+    try { const b = writeBatch(db); b.delete(doc(db, 'apartments', id)); b.delete(doc(db, 'apartmentsFinance', id)); await b.commit(); toast('تم الحذف', 'info'); }
+    catch (err) { toast(errMsg(err), 'error'); }
+  });
+};
+window.resetAptForm = () => {
+  $('apt-manage-form').reset(); $('apt-id-hidden').value = ''; $('apt-form-title').textContent = 'إضافة شقة جديدة';
+  $('apt-beds').value = 4; $('apt-rent').value = 8000;
+};
+
+/* ---------------------- الطلبات والمصاريف ---------------------- */
+function renderReqAptOptions() {
+  const sel = $('req-apt-id'); const cur = sel.value;
+  sel.innerHTML = sortedApts().map(a => `<option value="${a.id}">${esc(a.number)}</option>`).join('');
+  if (cur) sel.value = cur;
+}
+function fileToDataURL(file) {
+  return new Promise((res, rej) => {
+    if (file.type === 'application/pdf') {
+      if (file.size > 600 * 1024) return rej(new Error('ملف PDF أكبر من 600 كيلوبايت. ارفعه كصورة أو قلل حجمه.'));
+      const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(new Error('تعذر قراءة الملف')); r.readAsDataURL(file); return;
+    }
+    if (!file.type.startsWith('image/')) return rej(new Error('نوع الملف غير مدعوم (صورة أو PDF فقط)'));
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const s = Math.min(1, 1200 / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      let q = .75, d = c.toDataURL('image/jpeg', q);
+      while (d.length > 800000 && q > .3) { q -= .1; d = c.toDataURL('image/jpeg', q); }
+      URL.revokeObjectURL(url);
+      d.length > 800000 ? rej(new Error('الصورة كبيرة جداً')) : res(d);
+    };
+    img.onerror = () => rej(new Error('تعذر قراءة الصورة'));
+    img.src = url;
+  });
+}
+$('expense-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = $('req-submit-btn'); btn.disabled = true;
+  try {
+    const apt = S.apts.find(a => a.id === $('req-apt-id').value);
+    if (!apt) throw new Error('اختر الشقة');
+    const file = $('req-file').files[0];
+    const attachment = file ? await fileToDataURL(file) : '';
+    const ref = doc(collection(db, 'requests'));
+    await setDoc(ref, {
+      aptId: apt.id, aptNumber: apt.number, supervisorUid: apt.supervisorUid || '',
+      type: $('req-type').value, amount: parseFloat($('req-amount').value), description: $('req-desc').value.trim(),
+      status: 'قيد الانتظار', date: new Date().toISOString().split('T')[0], ts: Date.now(),
+      createdBy: P.uid, createdByName: P.name, attachment, attachmentName: file ? file.name : ''
+    });
+    $('expense-form').reset();
+    toast('تم رفع الطلب وفي انتظار الاعتماد', 'success');
+  } catch (err) { toast(errMsg(err), 'error'); }
+  btn.disabled = false;
+});
+function renderRequests() {
+  let pend = 0, appr = 0, maint = 0, util = 0;
+  const list = [...S.reqs].sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  $('requests-table-body').innerHTML = list.map(r => {
+    if (r.status === 'قيد الانتظار') pend++;
+    if (r.status === 'معتمد') appr++;
+    if (r.status !== 'مرفوض') { if (r.type.includes('صيانة')) maint += r.amount; if (r.type.includes('فواتير')) util += r.amount; }
+    const st = r.status === 'معتمد' ? 'bg-emerald-100 text-emerald-800' : r.status === 'مرفوض' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800';
+    return `<tr class="hover:bg-slate-50 align-top">
+      <td class="p-2.5 font-bold">${esc(r.aptNumber)}</td>
+      <td class="p-2.5">${esc(r.type)}${r.description ? `<div class="text-[11px] text-slate-500 mt-0.5">${esc(r.description)}</div>` : ''}</td>
+      <td class="p-2.5 font-mono font-bold">${fmt(r.amount)} ج.م</td>
+      <td class="p-2.5 text-slate-500">${esc(r.date)}</td>
+      <td class="p-2.5">${esc(r.createdByName)}</td>
+      <td class="p-2.5">${r.attachment ? `<button onclick="openAttachment('${r.id}')" class="px-2 py-1 bg-sky-50 text-sky-700 hover:bg-sky-100 rounded font-bold text-[10px]"><i class="fa-solid fa-paperclip"></i> عرض</button>` : '--'}</td>
+      <td class="p-2.5"><span class="px-2 py-1 rounded-md text-[10px] font-bold ${st}">${esc(r.status)}</span></td>
+      <td class="p-2.5 text-center whitespace-nowrap">${isAdmin() ? `
+        ${r.status === 'قيد الانتظار' ? `<button onclick="setReqStatus('${r.id}','معتمد')" class="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-bold text-[10px]">اعتماد</button>
+        <button onclick="setReqStatus('${r.id}','مرفوض')" class="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded font-bold text-[10px]">رفض</button>` : ''}
+        <button onclick="deleteReq('${r.id}')" class="px-2 py-1 text-rose-600 hover:bg-rose-50 rounded text-[10px]" title="حذف"><i class="fa-solid fa-trash"></i></button>` : '--'}</td></tr>`;
+  }).join('') || `<tr><td colspan="8" class="p-6 text-center text-slate-400">لا توجد طلبات</td></tr>`;
+  $('kpi-pending-reqs').textContent = pend; $('kpi-approved-reqs').textContent = appr;
+  $('kpi-maintenance-sum').textContent = fmt(maint) + ' ج.م'; $('kpi-utilities-sum').textContent = fmt(util) + ' ج.م';
+}
+window.setReqStatus = async (id, status) => {
+  try { await updateDoc(doc(db, 'requests', id), { status }); toast(`تم تحديث الحالة: ${status}`, 'info'); } catch (err) { toast(errMsg(err), 'error'); }
+};
+window.deleteReq = id => askConfirm('حذف طلب', 'سيتم حذف الطلب ومرفقه نهائياً.', async () => {
+  try { await deleteDoc(doc(db, 'requests', id)); } catch (err) { toast(errMsg(err), 'error'); }
+});
+window.openAttachment = async id => {
+  const r = S.reqs.find(x => x.id === id); if (!r || !r.attachment) return;
+  const blob = await (await fetch(r.attachment)).blob();
+  window.open(URL.createObjectURL(blob), '_blank');
+};
+
+/* ---------------------- إدارة المستخدمين ---------------------- */
+function renderUsers() {
+  $('users-table-body').innerHTML = [...S.users].sort((a, b) => a.name.localeCompare(b.name, 'ar')).map(u => {
+    const me = u.id === P.uid;
+    return `<tr class="hover:bg-slate-50">
+      <td class="p-3 font-bold">${esc(u.name)} ${me ? '<span class="text-[10px] text-slate-400">(أنت)</span>' : ''}</td>
+      <td class="p-3 text-slate-500" dir="ltr">${esc(u.email)}</td>
+      <td class="p-3"><select ${me ? 'disabled' : ''} onchange="changeRole('${u.id}', this.value)" class="px-2 py-1 border border-slate-300 rounded-lg text-[11px] bg-white">
+        ${['supervisor','viewer','admin'].map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${ROLE_LABEL[r]}</option>`).join('')}</select></td>
+      <td class="p-3 text-center whitespace-nowrap">
+        <button onclick="resetPass('${esc(u.email)}')" class="px-2 py-1 bg-brand-50 text-brand-700 hover:bg-brand-100 rounded font-bold text-[10px]">إرسال رابط كلمة سر</button>
+        ${me ? '' : `<button onclick="deleteUser('${u.id}')" class="px-2 py-1 text-rose-600 hover:bg-rose-50 rounded font-bold text-[10px]"><i class="fa-solid fa-trash"></i> حذف</button>`}</td></tr>`;
+  }).join('');
+}
+$('add-user-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const name = $('new-user-name').value.trim(), email = $('new-user-email').value.trim().toLowerCase(), pass = $('new-user-pass').value, role = $('new-user-role').value;
+  const btn = $('add-user-btn'); btn.disabled = true;
+  try {
+    const secApp = getApps().find(a => a.name === 'secondary') || initializeApp(firebaseConfig, 'secondary');
+    const secAuth = getAuth(secApp);
+    const cred = await createUserWithEmailAndPassword(secAuth, email, pass);
+    await signOut(secAuth);
+    await setDoc(doc(db, 'users', cred.user.uid), { name, email, role, createdAt: Date.now() });
+    $('add-user-form').reset();
+    toast(`تمت إضافة (${name}). سلّمه الإيميل وكلمة السر.`, 'success');
+  } catch (err) {
+    toast(err.code === 'auth/email-already-in-use' ? 'هذا الإيميل مسجل بالفعل في النظام' : err.code === 'auth/weak-password' ? 'كلمة السر ضعيفة (6 أحرف على الأقل)' : errMsg(err), 'error');
+  }
+  btn.disabled = false;
+});
+window.changeRole = async (id, role) => {
+  try { await updateDoc(doc(db, 'users', id), { role }); toast('تم تغيير الصلاحية', 'success'); } catch (err) { toast(errMsg(err), 'error'); }
+};
+window.resetPass = async email => {
+  try { await sendPasswordResetEmail(auth, email); toast('تم إرسال رابط تعيين كلمة السر للمستخدم', 'success'); } catch (err) { toast(errMsg(err), 'error'); }
+};
+window.deleteUser = id => {
+  const u = S.users.find(x => x.id === id); if (!u) return;
+  askConfirm('حذف مستخدم', `سيتم سحب صلاحية الدخول من (${u.name}) فوراً.`, async () => {
+    try { await deleteDoc(doc(db, 'users', id)); toast('تم حذف المستخدم', 'info'); } catch (err) { toast(errMsg(err), 'error'); }
+  });
+};
+
+window.copyIframeCode = () => {
+  const t = $('iframe-code-output'); t.select();
+  navigator.clipboard ? navigator.clipboard.writeText(t.value) : document.execCommand('copy');
+  toast('تم نسخ الكود', 'success');
+};
+</script>
 </body>
 </html>
