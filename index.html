@@ -136,37 +136,21 @@ body{font-family:'Cairo',sans-serif;background:#f8fafc}
           </div>
           <div>
             <label class="block text-xs font-bold mb-1">الوظيفة <span class="text-rose-500">*</span></label>
-            <select id="emp-role" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-              <option value="" disabled selected>-- اختر الوظيفة --</option>
-              <optgroup label="فئة العمال والفنيين">
-                <option value="عامل">عامل تنفيذ</option>
-                <option value="فني كهرباء">فني كهرباء</option>
-                <option value="فني ميكانيكا">فني ميكانيكا</option>
-                <option value="سائق">سائق معدات / سيارات</option>
-                <option value="أمن">حارس / أمن</option>
-              </optgroup>
-              <optgroup label="فئة المهندسين والإشراف">
-                <option value="مهندس موقع">مهندس موقع</option>
-                <option value="مهندس مكتب فني">مهندس مكتب فني</option>
-                <option value="محاسب موقع">محاسب موقع</option>
-                <option value="مشرف تنفيذ">مشرف تنفيذ</option>
-                <option value="أخصائي جودة">أخصائي جودة والسلامة</option>
-              </optgroup>
-              <optgroup label="فئة المديرين والقيادات">
-                <option value="مدير مشروع">مدير مشروع</option>
-                <option value="مدير تنفيذي">مدير تنفيذي</option>
-                <option value="رئيس قطاع">رئيس قطاع</option>
-                <option value="مستشار فنّي">مستشار فنّي</option>
-              </optgroup>
-            </select>
+            <input type="text" id="emp-role" required list="emp-role-list" autocomplete="off" placeholder="اكتب الوظيفة، مثال: مهندس موقع" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <datalist id="emp-role-list"></datalist>
           </div>
           <div>
             <label class="block text-xs font-bold mb-1">تاريخ الدخول <span class="text-rose-500">*</span></label>
             <input type="date" id="emp-entry-date" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
           </div>
-          <div class="p-3.5 bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-between">
-            <span class="text-xs text-slate-600 font-semibold">نوع الشقة المستهدفة:</span>
-            <span id="housing-type-tag" class="px-3 py-1 rounded-full text-xs font-bold bg-slate-200 text-slate-700">لم يحدد</span>
+          <div class="p-3.5 bg-slate-100 rounded-xl border border-slate-200 space-y-2">
+            <label class="block text-xs font-bold text-slate-700">نوع الشقة المستهدفة <span class="text-rose-500">*</span></label>
+            <select id="emp-category" required class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <option value="شقة عمال">شقة عمال</option>
+              <option value="شقة مهندسين">شقة مهندسين</option>
+              <option value="شقة مديرين">شقة مديرين</option>
+            </select>
+            <p class="text-[11px] text-slate-500">يتم اقتراح النوع تلقائياً من الوظيفة المكتوبة، ويمكنك تغييره يدوياً.</p>
           </div>
           <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-600/30 transition flex items-center justify-center gap-2">
             <i class="fa-solid fa-user-plus"></i><span>تسكين الموظف وحفظ البيانات</span>
@@ -582,10 +566,11 @@ window.closeConfirm = () => { $('modal-confirm').classList.add('hidden'); confir
 $('confirm-ok').onclick = async () => { const cb = confirmCb; window.closeConfirm(); if (cb) await cb(); };
 const errMsg = e => (e && e.code === 'permission-denied') ? 'ليس لديك صلاحية لهذا الإجراء' : (e && e.message) || 'حدث خطأ';
 
+// اقتراح نوع الشقة من نص الوظيفة المكتوب (للتسهيل فقط، والاختيار النهائي يدوي)
 function getCategoryForRole(role) {
-  if (["عامل","فني كهرباء","فني ميكانيكا","سائق","أمن"].includes(role)) return "شقة عمال";
-  if (["مهندس موقع","مهندس مكتب فني","محاسب موقع","مشرف تنفيذ","أخصائي جودة"].includes(role)) return "شقة مهندسين";
-  if (["مدير مشروع","مدير تنفيذي","رئيس قطاع","مستشار فنّي"].includes(role)) return "شقة مديرين";
+  const r = (role || '').trim();
+  if (/مدير|رئيس|مستشار|نائب|وكيل|مسؤول قطاع/.test(r)) return "شقة مديرين";
+  if (/مهندس|م\.|محاسب|مشرف|جودة|أخصائي|اخصائي|مراقب|مدقق|سلامة|مصمم|فني مكتب/.test(r)) return "شقة مهندسين";
   return "شقة عمال";
 }
 const typeClass = t => t === 'شقة عمال' ? 'bg-blue-100 text-blue-700' : t === 'شقة مهندسين' ? 'bg-purple-100 text-purple-700' : 'bg-amber-100 text-amber-700';
@@ -733,7 +718,7 @@ window.openModule = key => {
 function renderAll() {
   if (!P) return;
   renderStats();
-  if (currentTab === 'allocation') renderBeds();
+  if (currentTab === 'allocation') { renderBeds(); refreshRoleSuggestions(); }
   if (currentTab === 'report') renderReport();
   if (currentTab === 'settings') { renderAptList(); renderSupervisorOptions(); }
   if (currentTab === 'requests') { renderReqAptOptions(); renderRequests(); }
@@ -847,15 +832,21 @@ window.exportCSV = () => {
 };
 
 /* ---------------------- التسكين ---------------------- */
-$('emp-role').addEventListener('change', () => {
-  const cat = getCategoryForRole($('emp-role').value);
-  const t = $('housing-type-tag'); t.textContent = cat; t.className = 'px-3 py-1 rounded-full text-xs font-bold ' + typeClass(cat);
+let catTouched = false;
+$('emp-category').addEventListener('change', () => { catTouched = true; });
+$('emp-role').addEventListener('input', () => {
+  if (!catTouched && $('emp-role').value.trim()) $('emp-category').value = getCategoryForRole($('emp-role').value);
 });
+// اقتراحات من الوظائف المسجلة سابقاً (للتسهيل فقط)
+function refreshRoleSuggestions() {
+  const roles = [...new Set(S.emps.map(e => e.role).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ar'));
+  $('emp-role-list').innerHTML = roles.map(r => `<option value="${esc(r)}">`).join('');
+}
 $('add-employee-form').addEventListener('submit', async e => {
   e.preventDefault();
-  const name = $('emp-name').value.trim(), role = $('emp-role').value, entryDate = $('emp-entry-date').value;
+  const name = $('emp-name').value.trim(), role = $('emp-role').value.trim(), entryDate = $('emp-entry-date').value;
   if (!name || !role || !entryDate) return toast('يرجى تعبئة كل الحقول', 'warning');
-  const cat = getCategoryForRole(role);
+  const cat = $('emp-category').value;
   let target = null, bed = -1;
   for (const a of sortedApts().filter(x => x.type === cat)) {
     const occ = occupantsOf(a.id);
@@ -870,7 +861,7 @@ $('add-employee-form').addEventListener('submit', async e => {
     const ref = doc(collection(db, 'employees'));
     await setDoc(ref, { name, role, category: cat, entryDate, aptId: target.id, bedIndex: bed, supervisorUid: target.supervisorUid || '', createdAt: Date.now() });
     $('add-employee-form').reset(); $('emp-entry-date').value = new Date().toISOString().split('T')[0];
-    $('housing-type-tag').textContent = 'لم يحدد'; $('housing-type-tag').className = 'px-3 py-1 rounded-full text-xs font-bold bg-slate-200 text-slate-700';
+    catTouched = false; $('emp-category').value = 'شقة عمال';
     toast(`تم تسكين (${name}) في ${target.number} - سرير ${bed}`, 'success');
   } catch (err) { toast(errMsg(err), 'error'); }
 });
