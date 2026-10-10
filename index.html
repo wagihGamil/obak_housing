@@ -242,6 +242,10 @@ body{font-family:'Cairo',sans-serif;background:#f8fafc}
             <label class="block font-bold mb-1">الموقع / العنوان</label>
             <input type="text" id="apt-location" placeholder="مثال: التجمع الخامس - المنطقة 3" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl">
           </div>
+          <div>
+            <label class="block font-bold mb-1"><i class="fa-brands fa-whatsapp text-emerald-600"></i> رابط جروب واتساب الشقة</label>
+            <input type="url" id="apt-whatsapp" dir="ltr" placeholder="https://chat.whatsapp.com/xxxxxxxx" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl">
+          </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block font-bold mb-1">عدد السراير <span class="text-rose-500">*</span></label>
@@ -596,6 +600,9 @@ function getCategoryForRole(role) {
   if (/مهندس|م\.|محاسب|مشرف|جودة|أخصائي|اخصائي|مراقب|مدقق|سلامة|مصمم|فني مكتب/.test(r)) return "شقة مهندسين";
   return "شقة عمال";
 }
+const WA_RE = /^https:\/\/(chat\.whatsapp\.com|wa\.me|api\.whatsapp\.com|www\.whatsapp\.com|whatsapp\.com)\//i;
+const waBtn = a => (a.whatsappLink && WA_RE.test(a.whatsappLink))
+  ? `<a href="${esc(a.whatsappLink)}" target="_blank" rel="noopener noreferrer" class="no-print inline-flex items-center gap-1 mr-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-[10px] font-bold"><i class="fa-brands fa-whatsapp"></i> جروب الشقة</a>` : '';
 const typeClass = t => t === 'شقة عمال' ? 'bg-blue-100 text-blue-700' : t === 'شقة مهندسين' ? 'bg-purple-100 text-purple-700' : 'bg-amber-100 text-amber-700';
 const sortedApts = () => [...S.apts].sort((a, b) => a.number.localeCompare(b.number, 'ar', { numeric: true }));
 const occupantsOf = id => S.emps.filter(e => e.aptId === id).sort((a, b) => a.bedIndex - b.bedIndex);
@@ -776,7 +783,7 @@ function renderBeds() {
     }
     return `<div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
       <div class="flex items-center justify-between border-b border-slate-200 pb-2">
-        <div><span class="font-bold text-xs">${esc(a.number)}</span><span class="text-[11px] text-slate-500 block">${esc(a.location)}</span></div>
+        <div><span class="font-bold text-xs">${esc(a.number)}</span><span class="text-[11px] text-slate-500 block">${esc(a.location)}</span>${a.whatsappLink ? `<span class="block mt-1">${waBtn(a)}</span>` : ''}</div>
         <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg ${typeClass(a.type)}">${esc(a.type)} (${occ.length}/${a.totalBeds})</span>
       </div><div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${slots}</div></div>`;
   }).join('');
@@ -817,7 +824,7 @@ function renderReport() {
     people += occ.length;
     const rentCell = admin ? `<td class="p-3.5 font-mono font-bold">${fmt(S.fin[a.id])} ج.م</td>` : '';
     const common = idx => `
-      <td class="p-3.5 font-bold">${idx === 0 ? esc(a.number) : '<span class="text-slate-300">↳</span>'}</td>
+      <td class="p-3.5 font-bold">${idx === 0 ? esc(a.number) + waBtn(a) : '<span class="text-slate-300">↳</span>'}</td>
       <td class="p-3.5">${idx === 0 ? `${esc(a.type)} - <span class="text-slate-500">${esc(a.location)}</span>` : ''}</td>
       <td class="p-3.5 text-center">${idx === 0 ? `<span class="px-2 py-1 rounded-md text-[10px] bg-slate-200 font-bold">${occ.length} / ${a.totalBeds}</span>` : ''}</td>`;
     const tail = idx => `${idx === 0 ? rentCell : (admin ? '<td></td>' : '')}
@@ -930,7 +937,8 @@ function renderAptList() {
       <div class="grid grid-cols-2 gap-2 text-[11px] bg-white p-2.5 rounded-lg border border-slate-200">
         <div><span class="text-slate-400">الإيجار:</span> <strong>${fmt(S.fin[a.id])} ج.م</strong></div>
         <div><span class="text-slate-400">العقد حتى:</span> <strong>${contractBadge(a.contractEnd)}</strong></div>
-        <div class="col-span-2"><span class="text-slate-400">المشرف:</span> <strong>${esc(a.supervisorName || 'غير محدد')}</strong></div></div>
+        <div class="col-span-2"><span class="text-slate-400">المشرف:</span> <strong>${esc(a.supervisorName || 'غير محدد')}</strong></div>
+        <div class="col-span-2">${waBtn(a) || '<span class="text-slate-400">لا يوجد رابط جروب واتساب</span>'}</div></div>
       <div class="flex gap-2 pt-1 border-t border-slate-200">
         <button onclick="editApt('${a.id}')" class="flex-1 py-1.5 bg-slate-200 hover:bg-slate-300 font-bold rounded-lg text-xs"><i class="fa-solid fa-pen ml-1"></i> تعديل</button>
         <button onclick="deleteApt('${a.id}')" class="py-1.5 px-3 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>
@@ -942,10 +950,12 @@ $('apt-manage-form').addEventListener('submit', async e => {
   const id = $('apt-id-hidden').value;
   const beds = parseInt($('apt-beds').value);
   if (id && occupantsOf(id).length > beds) return toast(`عدد السراير أقل من عدد الساكنين الحاليين (${occupantsOf(id).length}). أخلِ بعضهم أولاً.`, 'warning');
+  const waLink = $('apt-whatsapp').value.trim();
+  if (waLink && !WA_RE.test(waLink)) return toast('رابط واتساب غير صحيح. يجب أن يبدأ بـ https://chat.whatsapp.com/', 'warning');
   const supUid = $('apt-supervisor').value;
   const sup = S.users.find(u => u.id === supUid);
   const data = { number: $('apt-number').value.trim(), type: $('apt-type').value, location: $('apt-location').value.trim() || 'غير محدد',
-    totalBeds: beds, contractEnd: $('apt-contract-end').value, supervisorUid: supUid, supervisorName: sup ? sup.name : '' };
+    totalBeds: beds, contractEnd: $('apt-contract-end').value, supervisorUid: supUid, supervisorName: sup ? sup.name : '', whatsappLink: waLink };
   try {
     const ref = id ? doc(db, 'apartments', id) : doc(collection(db, 'apartments'));
     const batch = writeBatch(db);
@@ -963,7 +973,7 @@ $('apt-manage-form').addEventListener('submit', async e => {
 });
 window.editApt = id => {
   const a = S.apts.find(x => x.id === id); if (!a) return;
-  $('apt-id-hidden').value = a.id; $('apt-number').value = a.number; $('apt-type').value = a.type; $('apt-location').value = a.location;
+  $('apt-id-hidden').value = a.id; $('apt-number').value = a.number; $('apt-type').value = a.type; $('apt-location').value = a.location; $('apt-whatsapp').value = a.whatsappLink || '';
   $('apt-beds').value = a.totalBeds; $('apt-rent').value = S.fin[a.id] ?? 0; $('apt-contract-end').value = a.contractEnd;
   renderSupervisorOptions(); $('apt-supervisor').value = a.supervisorUid || '';
   $('apt-form-title').textContent = 'تعديل بيانات الشقة'; window.scrollTo({ top: 0, behavior: 'smooth' });
