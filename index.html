@@ -13,6 +13,7 @@ tailwind.config = { theme: { extend: { fontFamily: { cairo: ['Cairo','sans-serif
 </script>
 <style>
 body{font-family:'Cairo',sans-serif;background:#f8fafc}
+.cars-tab-btn.active{background:#0284c7;color:#fff;box-shadow:0 4px 12px rgba(2,132,199,.25)}
 .tab-btn.active{background:#0284c7;color:#fff;box-shadow:0 4px 12px rgba(2,132,199,.25)}
 .custom-scrollbar::-webkit-scrollbar{width:6px;height:6px}
 .custom-scrollbar::-webkit-scrollbar-track{background:#f1f5f9}
@@ -424,7 +425,64 @@ body{font-family:'Cairo',sans-serif;background:#f8fafc}
 </main>
 
 <main id="module-cars" data-module-section class="hidden flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4">
-  <iframe id="cars-frame" title="السيارات" class="w-full border-0 rounded-2xl" style="height:calc(100vh - 130px);min-height:680px;background:#f8fafc"></iframe>
+  <nav class="flex flex-wrap gap-2 mb-4 bg-slate-200/60 p-1.5 rounded-2xl border border-slate-300/60 w-fit max-w-full">
+    <button id="cars-tab-main" onclick="switchCarsTab('main')" class="cars-tab-btn active px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-white/60 transition flex items-center gap-2"><i class="fa-solid fa-bus"></i><span>توزيع المقاعد ومواعيد المحطات</span></button>
+    <button id="cars-tab-files" onclick="switchCarsTab('files')" class="cars-tab-btn px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-white/60 transition flex items-center gap-2"><i class="fa-solid fa-paperclip"></i><span>المرفقات</span></button>
+  </nav>
+  <div id="cars-pane-main">
+    <iframe id="cars-frame" title="السيارات" class="w-full border-0 rounded-2xl" style="height:calc(100vh - 190px);min-height:640px;background:#f8fafc"></iframe>
+  </div>
+  <div id="cars-pane-files" class="hidden animate-fade-in">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div id="cf-form-card" class="lg:col-span-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-fit">
+        <h3 class="text-sm font-bold pb-3 mb-4 border-b border-slate-100 flex items-center gap-2"><i class="fa-solid fa-cloud-arrow-up text-brand-600"></i><span>رفع مرفق لخط</span></h3>
+        <form id="cf-form" class="space-y-3.5 text-xs">
+          <div>
+            <label class="block font-bold mb-1">الخط <span class="text-rose-500">*</span></label>
+            <input type="text" id="cf-line" required list="cars-line-list" autocomplete="off" placeholder="اختر من القائمة أو اكتب اسم الخط" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl">
+            <datalist id="cars-line-list"></datalist>
+            <p class="text-[11px] text-slate-500 mt-1">القائمة من الخطوط في شيت الموظفين ومواعيد المحطات. اكتب "عام" لمرفق لكل الخطوط.</p>
+          </div>
+          <div>
+            <label class="block font-bold mb-1">نوع المرفق <span class="text-rose-500">*</span></label>
+            <select id="cf-cat" required class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl">
+              <option>خريطة الخط</option><option>جدول مواعيد</option><option>عقد</option><option>ترخيص / تأمين</option><option>أخرى</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold mb-1">عنوان / وصف <span class="text-rose-500">*</span></label>
+            <input type="text" id="cf-title" required placeholder="مثال: عقد باص خط 2 - 2026" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-bold mb-1">الملف <span class="text-rose-500">*</span></label>
+            <input type="file" id="cf-file" required class="w-full text-xs file:ml-2 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-slate-200 file:font-bold">
+            <p class="text-[11px] text-slate-500 mt-1">أي نوع ملف (PDF / صور / Word / Excel) حتى 5 ميجابايت.</p>
+          </div>
+          <button type="submit" id="cf-submit-btn" class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl"><i class="fa-solid fa-upload ml-1"></i> رفع المرفق</button>
+        </form>
+      </div>
+      <div id="cf-list-card" class="lg:col-span-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-3 mb-4 border-b border-slate-100">
+          <h3 class="text-sm font-bold">مرفقات الخطوط</h3>
+          <div class="flex flex-wrap gap-2">
+            <input type="text" id="cf-search" placeholder="بحث..." class="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs w-36">
+            <select id="cf-filter-line" class="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs"></select>
+            <select id="cf-filter-cat" class="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs">
+              <option value="ALL">كل الأنواع</option><option>خريطة الخط</option><option>جدول مواعيد</option><option>عقد</option><option>ترخيص / تأمين</option><option>أخرى</option>
+            </select>
+          </div>
+        </div>
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-right text-xs">
+            <thead><tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+              <th class="p-2.5">المرفق</th><th class="p-2.5">الخط</th><th class="p-2.5">النوع</th><th class="p-2.5">الحجم</th><th class="p-2.5">التاريخ</th><th class="p-2.5 text-center">إجراءات</th>
+            </tr></thead>
+            <tbody id="cf-table-body" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 </main>
 
 <main id="module-users" data-module-section class="hidden flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -591,7 +649,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 let P = null;                 // ملف المستخدم الحالي
-let S = { apts: [], fin: {}, emps: [], reqs: [], users: [], docs: [] };
+let S = { apts: [], fin: {}, emps: [], reqs: [], users: [], docs: [], carsFiles: [] };
 let unsubs = [];
 let currentTab = null;
 
@@ -664,7 +722,7 @@ window.doLogout = () => signOut(auth);
 
 onAuthStateChanged(auth, async user => {
   unsubs.forEach(u => u()); unsubs = [];
-  P = null; S = { apts: [], fin: {}, emps: [], reqs: [], users: [], docs: [] };
+  P = null; S = { apts: [], fin: {}, emps: [], reqs: [], users: [], docs: [], carsFiles: [] };
   if (!user) {
     $('app').classList.add('hidden'); $('login-screen').classList.remove('hidden');
     return;
@@ -716,6 +774,7 @@ function startApp() {
     listen(collection(db, 'requests'), d => S.reqs = d);
     listen(collection(db, 'users'), d => S.users = d);
     listen(collection(db, 'documents'), d => S.docs = d);
+    listen(collection(db, 'carsFiles'), d => S.carsFiles = d);
   } else if (P.modules.includes('housing')) {
     if (P.role === 'viewer') {
       listen(collection(db, 'apartments'), d => S.apts = d);
@@ -727,6 +786,8 @@ function startApp() {
       listen(query(collection(db, 'documents'), where('supervisorUid', '==', P.uid), where('visibleToSupervisor', '==', true)), d => S.docs = d);
     }
   }
+
+  if (P.role !== 'admin' && P.modules.includes('cars')) listen(collection(db, 'carsFiles'), d => S.carsFiles = d);
 
   const allowed = TABS.filter(t => t.roles.includes(P.role));
   $('tabs-nav').innerHTML = allowed.map(t =>
@@ -795,7 +856,7 @@ window.openModule = key => {
   hideAllModules(); $('home-screen').classList.add('hidden');
   currentModule = key;
   $('module-' + key).classList.remove('hidden');
-  if (key === 'cars') loadCarsFrame();
+  if (key === 'cars') { loadCarsFrame(); window.switchCarsTab('main'); }
   $('btn-home').classList.remove('hidden'); $('btn-home').classList.add('flex');
   $('free-beds-badge').style.display = key === 'housing' ? '' : 'none';
   $('header-sub').textContent = 'شركة أوباك للصناعات الغذائية — ' + m.label;
@@ -815,11 +876,10 @@ function loadCarsFrame() {
 async function sendCarsData() {
   try {
     const [e, st] = await Promise.all([getDoc(doc(db, 'carsData', 'employees')), getDoc(doc(db, 'carsData', 'stations'))]);
-    $('cars-frame').contentWindow.postMessage({
-      type: 'cars-load',
-      employees: e.exists() ? JSON.parse(e.data().json) : [],
-      stations: st.exists() ? JSON.parse(st.data().json) : {}
-    }, '*');
+    const emps = e.exists() ? JSON.parse(e.data().json) : [];
+    const stns = st.exists() ? JSON.parse(st.data().json) : {};
+    addCarsLines(emps.map(x => x.line)); addCarsLines(Object.keys(stns)); renderCarsFiles();
+    $('cars-frame').contentWindow.postMessage({ type: 'cars-load', employees: emps, stations: stns }, '*');
   } catch (err) { toast('تعذر تحميل بيانات السيارات: ' + errMsg(err), 'error'); }
 }
 window.addEventListener('message', async ev => {
@@ -827,6 +887,11 @@ window.addEventListener('message', async ev => {
   if (!P || !fr || ev.source !== fr.contentWindow) return;
   const m = ev.data || {};
   if (m.type === 'cars-ready') { sendCarsData(); return; }
+  if (m.type === 'cars-save') {
+    if (m.kind === 'employees') addCarsLines((m.data || []).map(x => x.line));
+    if (m.kind === 'stations') addCarsLines(Object.keys(m.data || {}));
+    renderCarsFiles();
+  }
   if (m.type === 'cars-save' && (m.kind === 'employees' || m.kind === 'stations')) {
     if (P.role !== 'admin') { toast('تم رفع الملف للعرض فقط. حفظ البيانات في قاعدة البيانات للمدير فقط.', 'warning'); return; }
     try {
@@ -845,6 +910,7 @@ function renderAll() {
   if (currentTab === 'settings') { renderAptList(); renderSupervisorOptions(); }
   if (currentTab === 'requests') { renderReqAptOptions(); renderRequests(); }
   if (currentTab === 'documents') { renderDocAptOptions(); renderDocs(); }
+  if (currentModule === 'cars') renderCarsFiles();
   if (currentModule === 'users') { renderUsers(); renderNewUserModules(); renderNewUserApts(); }
 }
 
@@ -1438,6 +1504,103 @@ window.deleteDocFile = id => {
       const snap = await getDocs(collection(db, 'documents', id, 'chunks'));
       const b = writeBatch(db); snap.docs.forEach(x => b.delete(x.ref)); b.delete(doc(db, 'documents', id)); await b.commit();
       toast('تم حذف المستند', 'info');
+    } catch (err) { toast(errMsg(err), 'error'); }
+  });
+};
+
+/* ---------------------- مرفقات السيارات (لكل خط) ---------------------- */
+const carsLines = new Set();
+function addCarsLines(arr) { (arr || []).forEach(l => { const t = String(l || '').trim(); if (t) carsLines.add(t); }); }
+window.switchCarsTab = k => {
+  $('cars-pane-main').classList.toggle('hidden', k !== 'main');
+  $('cars-pane-files').classList.toggle('hidden', k !== 'files');
+  $('cars-tab-main').classList.toggle('active', k === 'main');
+  $('cars-tab-files').classList.toggle('active', k === 'files');
+  if (k === 'files') renderCarsFiles();
+};
+function renderCarsFiles() {
+  if (!P || !$('cf-table-body')) return;
+  const admin = isAdmin();
+  $('cf-form-card').classList.toggle('hidden', !admin);
+  $('cf-list-card').classList.toggle('lg:col-span-12', !admin);
+  $('cf-list-card').classList.toggle('lg:col-span-8', admin);
+  const all = [...carsLines, ...S.carsFiles.map(f => f.line)].filter(Boolean);
+  const lines = [...new Set(all)].sort((a, b) => a.localeCompare(b, 'ar', { numeric: true }));
+  $('cars-line-list').innerHTML = [...new Set(['عام', ...lines])].map(l => `<option value="${esc(l)}">`).join('');
+  const fl = $('cf-filter-line'), cur = fl.value || 'ALL';
+  fl.innerHTML = '<option value="ALL">كل الخطوط</option>' + [...new Set(S.carsFiles.map(f => f.line))].sort((a, b) => a.localeCompare(b, 'ar', { numeric: true })).map(l => `<option value="${esc(l)}">${esc(l)}</option>`).join('');
+  fl.value = [...fl.options].some(o => o.value === cur) ? cur : 'ALL';
+  const q = $('cf-search').value.trim().toLowerCase(), fc = $('cf-filter-cat').value, fline = fl.value;
+  const list = S.carsFiles.filter(f => (fline === 'ALL' || f.line === fline) && (fc === 'ALL' || f.category === fc) &&
+    (!q || f.title.toLowerCase().includes(q) || (f.fileName || '').toLowerCase().includes(q) || (f.line || '').toLowerCase().includes(q)))
+    .sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  $('cf-table-body').innerHTML = list.map(f => `<tr class="hover:bg-slate-50">
+      <td class="p-2.5"><div class="font-bold">${esc(f.title)}</div><div class="text-[11px] text-slate-400" dir="ltr">${esc(f.fileName)}</div></td>
+      <td class="p-2.5"><span class="bg-sky-50 text-sky-800 px-2 py-0.5 rounded font-bold">${esc(f.line)}</span></td>
+      <td class="p-2.5"><span class="bg-slate-100 px-2 py-0.5 rounded">${esc(f.category)}</span></td>
+      <td class="p-2.5 text-slate-500">${fmtSize(f.size || 0)}</td>
+      <td class="p-2.5 text-slate-500">${esc(f.date)}</td>
+      <td class="p-2.5 text-center whitespace-nowrap">
+        <button onclick="openCarsFile('${f.id}', false)" class="px-2 py-1 bg-sky-50 text-sky-700 hover:bg-sky-100 rounded font-bold text-[10px]"><i class="fa-solid fa-eye"></i> عرض</button>
+        <button onclick="openCarsFile('${f.id}', true)" class="px-2 py-1 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded font-bold text-[10px]"><i class="fa-solid fa-download"></i> تنزيل</button>
+        ${admin ? `<button onclick="deleteCarsFile('${f.id}')" class="px-2 py-1 text-rose-600 hover:bg-rose-50 rounded text-[10px]"><i class="fa-solid fa-trash"></i></button>` : ''}</td></tr>`).join('')
+    || `<tr><td colspan="6" class="p-6 text-center text-slate-400">لا توجد مرفقات</td></tr>`;
+}
+$('cf-search').addEventListener('input', renderCarsFiles);
+$('cf-filter-line').addEventListener('change', renderCarsFiles);
+$('cf-filter-cat').addEventListener('change', renderCarsFiles);
+
+$('cf-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const file = $('cf-file').files[0];
+  const line = $('cf-line').value.trim();
+  if (!file) return toast('اختر الملف أولاً', 'warning');
+  if (!line) return toast('حدد الخط', 'warning');
+  if (file.size > MAX_DOC) return toast('الملف أكبر من 5 ميجابايت. اضغطه أو قسّمه ثم ارفعه.', 'warning');
+  const btn = $('cf-submit-btn'); btn.disabled = true;
+  const label = btn.innerHTML;
+  try {
+    const dataUrl = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(new Error('تعذر قراءة الملف')); r.readAsDataURL(file); });
+    const b64 = dataUrl.slice(dataUrl.indexOf(',') + 1);
+    const n = Math.max(1, Math.ceil(b64.length / CHUNK));
+    const ref = doc(collection(db, 'carsFiles'));
+    for (let i = 0; i < n; i++) {
+      btn.textContent = `جارٍ الرفع ${i + 1} / ${n}`;
+      await setDoc(doc(db, 'carsFiles', ref.id, 'chunks', String(i).padStart(3, '0')), { n: i, data: b64.slice(i * CHUNK, (i + 1) * CHUNK) });
+    }
+    await setDoc(ref, {
+      title: $('cf-title').value.trim(), category: $('cf-cat').value, line,
+      fileName: file.name, mime: file.type || 'application/octet-stream', size: file.size, chunks: n,
+      date: new Date().toISOString().split('T')[0], ts: Date.now(), uploadedBy: P.name
+    });
+    $('cf-form').reset();
+    toast('تم رفع المرفق بنجاح', 'success');
+  } catch (err) { toast('فشل الرفع: ' + errMsg(err), 'error'); }
+  btn.disabled = false; btn.innerHTML = label;
+});
+
+window.openCarsFile = async (id, download) => {
+  const f = S.carsFiles.find(x => x.id === id); if (!f) return;
+  const previewable = !download && (f.mime === 'application/pdf' || f.mime.startsWith('image/'));
+  const w = previewable ? window.open('', '_blank') : null;
+  try {
+    toast('جارٍ تحميل الملف...', 'info');
+    const snap = await getDocs(collection(db, 'carsFiles', f.id, 'chunks'));
+    const b64 = snap.docs.map(x => x.data()).sort((a, b) => a.n - b.n).map(x => x.data).join('');
+    const bin = atob(b64), bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([bytes], { type: f.mime }));
+    if (previewable) { if (w) w.location = url; else location.href = url; }
+    else { const a = document.createElement('a'); a.href = url; a.download = f.fileName; a.click(); }
+  } catch (err) { if (w) w.close(); toast('تعذر تحميل الملف: ' + errMsg(err), 'error'); }
+};
+window.deleteCarsFile = id => {
+  const f = S.carsFiles.find(x => x.id === id); if (!f) return;
+  askConfirm('حذف مرفق', `سيتم حذف (${f.title}) نهائياً.`, async () => {
+    try {
+      const snap = await getDocs(collection(db, 'carsFiles', id, 'chunks'));
+      const b = writeBatch(db); snap.docs.forEach(x => b.delete(x.ref)); b.delete(doc(db, 'carsFiles', id)); await b.commit();
+      toast('تم حذف المرفق', 'info');
     } catch (err) { toast(errMsg(err), 'error'); }
   });
 };
