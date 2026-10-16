@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>إدارة الشؤون الإدارية (شركة أوباك للصناعات الغذائية)</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -860,10 +861,12 @@ body{font-family:'Cairo',sans-serif;background:#f8fafc}
       <div class="flex flex-wrap items-center justify-between gap-3 pb-3 mb-4 border-b border-slate-100">
         <h3 class="text-sm font-bold">قائمة المهام</h3>
         <div class="flex flex-wrap gap-2 items-center">
+          <button type="button" id="tk-gcal-btn" onclick="connectGcal()" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 rounded-xl text-xs font-bold"><i class="fa-brands fa-google text-rose-500"></i> <span id="tk-gcal-label">ربط تقويم جوجل</span></button>
+          <button type="button" id="tk-gcal-off" onclick="disconnectGcal()" class="hidden px-2 py-1.5 text-slate-500 hover:text-rose-600 text-xs" title="فصل التقويم"><i class="fa-solid fa-link-slash"></i></button>
           <select id="tk-filter" class="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs">
             <option value="open">المفتوحة</option><option value="late">المتأخرة</option><option value="done">المنتهية</option><option value="all">الكل</option></select>
           <select id="tk-src" class="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs">
-            <option value="all">كل المصادر</option><option value="task">مهامي</option><option value="req">طلبات المشرفين</option></select>
+            <option value="all">كل المصادر</option><option value="task">مهامي</option><option value="req">طلبات المشرفين</option><option value="gcal">تقويم جوجل</option></select>
           <input type="text" id="tk-search" placeholder="بحث..." class="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs w-32">
         </div>
       </div>
@@ -1052,6 +1055,8 @@ const firebaseConfig = {
 };
 // إيميل مدير النظام الأول (لازم يكون نفس الإيميل في ملف firestore.rules)
 const ADMIN_EMAIL = "obakwajih@gmail.com";
+// ربط تقويم جوجل (قسم المهام): ضع هنا OAuth Client ID من Google Cloud (انظر الشرح). اتركه فارغاً لإخفاء الربط.
+const GOOGLE_CLIENT_ID = "162458550031-d8c2ihfqij5kbt5frscr99l6jl5lgu41.apps.googleusercontent.com";
 /* ============================================================================ */
 
 const $ = id => document.getElementById(id);
@@ -1301,7 +1306,7 @@ window.openModule = key => {
   hideAllModules(); $('home-screen').classList.add('hidden');
   currentModule = key;
   $('module-' + key).classList.remove('hidden');
-  if (key === 'tasks') { window.resetTaskForm(); }
+  if (key === 'tasks') { window.resetTaskForm(); gcalUpdateUI(); }
   if (key === 'stationery') { setupStationeryUI(); window.switchStTab('stock'); }
   if (key === 'buffet') { setupBuffetUI(); window.switchBfTab('stock'); }
   if (key === 'cars') { loadCarsFrame(); window.switchCarsTab('main'); }
@@ -2692,10 +2697,12 @@ S.tasks = [];
 const tkToday = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
 function tkItems() {
   const today = tkToday();
-  const mine = S.tasks.map(t => ({ kind: 'task', id: t.id, title: t.title, notes: t.notes || '', due: t.due || '', done: !!t.done, doneAt: t.doneAt, raw: t }));
+  const mine = S.tasks.filter(t => !t.id.startsWith('gcal_')).map(t => ({ kind: 'task', id: t.id, title: t.title, notes: t.notes || '', due: t.due || '', done: !!t.done, doneAt: t.doneAt, raw: t }));
   // طلبات المشرفين: تظهر كمهمة مفتوحة حتى يتم اعتمادها أو رفضها
   const reqs = S.reqs.map(r => ({ kind: 'req', id: r.id, title: `${r.type} — ${r.aptNumber} (${fmt(r.amount)} ج.م)`, notes: r.description || '', due: r.date || '', done: r.status !== 'قيد الانتظار', status: r.status, by: r.createdByName, raw: r }));
-  return mine.concat(reqs).map(x => ({ ...x, late: !x.done && x.due && x.due < today, today: !x.done && x.due === today }));
+  const gdone = new Set(S.tasks.filter(t => t.id.startsWith('gcal_') && t.done).map(t => t.id));
+  const gev = (S.gcal || []).map(ev => ({ kind: 'gcal', id: ev.id, title: ev.title, notes: ev.notes, due: ev.due, time: ev.time, link: ev.link, cal: ev.cal, done: gdone.has('gcal_' + ev.id) }));
+  return mine.concat(reqs, gev).map(x => ({ ...x, late: !x.done && x.due && x.due < today, today: !x.done && x.due === today }));
 }
 function renderTasks() {
   if (!P || currentModule !== 'tasks') return;
@@ -2707,13 +2714,15 @@ function renderTasks() {
   const f = $('tk-filter').value, src = $('tk-src').value, q = $('tk-search').value.trim().toLowerCase();
   const rows = all.filter(x => (f === 'all' || (f === 'open' && !x.done) || (f === 'late' && x.late) || (f === 'done' && x.done))
     && (src === 'all' || x.kind === src) && (!q || (x.title + ' ' + x.notes).toLowerCase().includes(q)))
-    .sort((a, b) => (a.done - b.done) || (a.due || '9999').localeCompare(b.due || '9999'));
+    .sort((a, b) => (a.done - b.done) || (a.due || '9999').localeCompare(b.due || '9999') || (a.time || '').localeCompare(b.time || ''));
   $('tk-list').innerHTML = rows.map(x => {
     const dueCls = x.late ? 'bg-rose-100 text-rose-700' : x.today ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600';
-    const check = x.kind === 'task'
-      ? `<input type="checkbox" ${x.done ? 'checked' : ''} onchange="toggleTask('${x.id}', this.checked)" class="w-5 h-5 mt-0.5 accent-emerald-600 cursor-pointer" title="تم">`
+    const check = x.kind === 'task' || x.kind === 'gcal'
+      ? `<input type="checkbox" ${x.done ? 'checked' : ''} onchange="${x.kind === 'gcal' ? `toggleGcal('${x.id}'` : `toggleTask('${x.id}'`}, this.checked)" class="w-5 h-5 mt-0.5 accent-emerald-600 cursor-pointer" title="تم">`
       : `<i class="fa-solid ${x.done ? (x.status === 'معتمد' ? 'fa-circle-check text-emerald-600' : 'fa-circle-xmark text-rose-500') : 'fa-hourglass-half text-amber-500'} text-lg mt-0.5"></i>`;
-    const actions = x.kind === 'task'
+    const actions = x.kind === 'gcal'
+      ? (x.link ? `<a href="${esc(x.link)}" target="_blank" rel="noopener noreferrer" class="px-2 py-1 bg-sky-50 text-sky-700 hover:bg-sky-100 rounded text-[10px] font-bold" title="فتح في تقويم جوجل"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : '')
+      : x.kind === 'task'
       ? `<button onclick="editTask('${x.id}')" class="px-2 py-1 bg-sky-50 text-sky-700 hover:bg-sky-100 rounded text-[10px] font-bold"><i class="fa-solid fa-pen"></i></button>
          <button onclick="deleteTask('${x.id}')" class="px-2 py-1 text-rose-600 hover:bg-rose-50 rounded text-[10px]"><i class="fa-solid fa-trash"></i></button>`
       : `${x.raw.attachment ? `<button onclick="openAttachment('${x.id}')" class="px-2 py-1 bg-sky-50 text-sky-700 hover:bg-sky-100 rounded font-bold text-[10px]"><i class="fa-solid fa-paperclip"></i></button>` : ''}
@@ -2722,11 +2731,12 @@ function renderTasks() {
     return `<div class="flex items-start gap-3 p-3 border border-slate-200 rounded-xl ${x.done ? 'bg-slate-50 opacity-70' : 'bg-white'}">
       ${check}
       <div class="flex-1 min-w-0">
-        <div class="font-bold text-sm ${x.kind === 'task' && x.done ? 'line-through text-slate-400' : ''}">${esc(x.title)}</div>
+        <div class="font-bold text-sm ${x.kind !== 'req' && x.done ? 'line-through text-slate-400' : ''}">${esc(x.title)}</div>
         ${x.notes ? `<div class="text-[11px] text-slate-500 mt-0.5">${esc(x.notes)}</div>` : ''}
         <div class="flex flex-wrap items-center gap-2 mt-1.5 text-[10px]">
+          ${x.kind === 'gcal' ? `<span class="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 font-bold"><i class="fa-brands fa-google"></i> تقويم جوجل${x.cal ? ': ' + esc(x.cal) : ''}</span>` : ''}
           ${x.kind === 'req' ? `<span class="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 font-bold"><i class="fa-solid fa-receipt"></i> طلب من مشرف${x.by ? ': ' + esc(x.by) : ''}</span>` : ''}
-          <span class="px-1.5 py-0.5 rounded font-bold ${dueCls}"><i class="fa-regular fa-calendar"></i> ${esc(x.due || 'بدون تاريخ')}${x.late ? ' — متأخرة' : x.today ? ' — اليوم' : ''}</span>
+          <span class="px-1.5 py-0.5 rounded font-bold ${dueCls}"><i class="fa-regular fa-calendar"></i> ${esc(x.due || 'بدون تاريخ')}${x.time ? ' ' + esc(x.time) : ''}${x.late ? ' — متأخرة' : x.today ? ' — اليوم' : ''}</span>
         </div></div>
       <div class="whitespace-nowrap flex items-center gap-1">${actions}</div></div>`;
   }).join('') || `<p class="p-8 text-center text-slate-400 text-xs">لا توجد مهام</p>`;
@@ -2751,6 +2761,59 @@ $('tk-form').addEventListener('submit', async e => {
 });
 window.toggleTask = async (id, done) => {
   try { await updateDoc(doc(db, 'tasks', id), { done, doneAt: done ? Date.now() : 0 }); } catch (err) { toast(errMsg(err), 'error'); }
+};
+/* --- ربط تقويم جوجل (قراءة فقط): الأحداث تظهر كمهام ويمكن تعليمها منتهية داخل الموقع --- */
+S.gcal = [];
+let gToken = null, gClient = null;
+function gcalUpdateUI() {
+  const on = !!gToken;
+  $('tk-gcal-btn').classList.toggle('hidden', !GOOGLE_CLIENT_ID);
+  $('tk-gcal-label').textContent = on ? 'تحديث من التقويم' : 'ربط تقويم جوجل';
+  $('tk-gcal-off').classList.toggle('hidden', !on);
+}
+window.connectGcal = () => {
+  if (!GOOGLE_CLIENT_ID) return toast('ربط التقويم غير مفعّل بعد: ضع GOOGLE_CLIENT_ID في الملف.', 'warning');
+  if (gToken) return loadGcalEvents();
+  if (!window.google || !google.accounts) return toast('تعذر تحميل خدمة جوجل. تأكد من الاتصال وأعد المحاولة.', 'error');
+  gClient = gClient || google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID, scope: 'https://www.googleapis.com/auth/calendar.readonly',
+    callback: r => { if (r && r.access_token) { gToken = r.access_token; gcalUpdateUI(); loadGcalEvents(); } else toast('لم يتم منح إذن الوصول للتقويم', 'warning'); },
+    error_callback: () => toast('تم إلغاء الربط بالتقويم', 'info')
+  });
+  gClient.requestAccessToken({ prompt: '' });
+};
+window.disconnectGcal = () => {
+  if (gToken && window.google && google.accounts) try { google.accounts.oauth2.revoke(gToken); } catch (e) {}
+  gToken = null; S.gcal = []; gcalUpdateUI(); renderTasks(); toast('تم فصل التقويم', 'info');
+};
+async function gApi(url) {
+  const r = await fetch(url, { headers: { Authorization: 'Bearer ' + gToken } });
+  if (r.status === 401) { gToken = null; gcalUpdateUI(); throw new Error('انتهت جلسة جوجل، اضغط "ربط تقويم جوجل" مرة أخرى'); }
+  if (!r.ok) throw new Error('خطأ من جوجل (' + r.status + '). تأكد من تفعيل Google Calendar API.');
+  return r.json();
+}
+async function loadGcalEvents() {
+  try {
+    const now = Date.now(), min = new Date(now - 14 * 864e5).toISOString(), max = new Date(now + 120 * 864e5).toISOString();
+    const cals = (await gApi('https://www.googleapis.com/calendar/v3/users/me/calendarList')).items || [];
+    const use = cals.filter(c => c.selected !== false && !/#holiday@|#contacts@|#weather@/.test(c.id));
+    const out = [];
+    for (const c of use) {
+      const q = `?timeMin=${encodeURIComponent(min)}&timeMax=${encodeURIComponent(max)}&singleEvents=true&orderBy=startTime&maxResults=250`;
+      const evs = (await gApi(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(c.id)}/events${q}`)).items || [];
+      evs.filter(e => e.status !== 'cancelled').forEach(e => {
+        const st = e.start || {}; const allDay = !!st.date;
+        const d = allDay ? new Date(st.date + 'T00:00:00') : new Date(st.dateTime);
+        out.push({ id: (c.primary ? '' : c.id.replace(/[^a-z0-9]/gi, '').slice(0, 12)) + e.id, title: e.summary || '(بدون عنوان)', notes: e.description ? String(e.description).replace(/<[^>]+>/g, ' ').trim().slice(0, 160) : (e.location || ''),
+          due: allDay ? st.date : d.toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' }),
+          time: allDay ? '' : d.toLocaleTimeString('ar-EG', { timeZone: 'Africa/Cairo', hour: '2-digit', minute: '2-digit' }), link: e.htmlLink || '', cal: c.summaryOverride || c.summary || '' });
+      });
+    }
+    S.gcal = out; renderTasks(); toast(`تم تحميل ${out.length} حدث من تقويم جوجل`, 'success');
+  } catch (err) { toast(err.message || 'تعذر تحميل التقويم', 'error'); }
+}
+window.toggleGcal = async (id, done) => {
+  try { await setDoc(doc(db, 'tasks', 'gcal_' + id), { gcal: true, done, doneAt: done ? Date.now() : 0, createdAt: Date.now() }); } catch (err) { toast(errMsg(err), 'error'); }
 };
 window.deleteTask = id => askConfirm('حذف مهمة', 'سيتم حذف المهمة نهائياً.', async () => {
   try { await deleteDoc(doc(db, 'tasks', id)); toast('تم الحذف', 'info'); } catch (err) { toast(errMsg(err), 'error'); }
