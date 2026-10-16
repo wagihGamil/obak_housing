@@ -840,7 +840,7 @@ body{font-family:'Cairo',sans-serif;background:#f8fafc}
     <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm"><span class="text-slate-500 block">منتهية</span><span id="tk-k-done" class="text-lg font-bold text-emerald-600">0</span></div>
   </div>
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-    <div class="lg:col-span-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-fit">
+    <div id="tk-form-card" class="lg:col-span-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-fit">
       <h3 class="text-sm font-bold pb-3 mb-4 border-b border-slate-100 flex items-center gap-2"><i class="fa-solid fa-list-check text-brand-600"></i><span id="tk-form-title">إضافة مهمة</span></h3>
       <form id="tk-form" class="space-y-3.5 text-xs">
         <input type="hidden" id="tk-id">
@@ -850,6 +850,9 @@ body{font-family:'Cairo',sans-serif;background:#f8fafc}
           <input type="date" id="tk-due" required class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl"></div>
         <div><label class="block font-bold mb-1">ملاحظات</label>
           <textarea id="tk-notes" rows="3" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl"></textarea></div>
+        <div><label class="block font-bold mb-1">تظهر لـ</label>
+          <div id="tk-assignees" class="border border-slate-300 rounded-xl bg-slate-50 p-2 space-y-1 max-h-40 overflow-y-auto"></div>
+          <p class="text-[11px] text-slate-500 mt-1">بدون تحديد أحد = المهمة لك أنت فقط. المستخدم المحدد يشوفها ويقدر يعلّمها "تم" بس، ولازم يكون معه قسم "المهام" من إدارة المستخدمين.</p></div>
         <div class="flex gap-2">
           <button type="submit" class="flex-1 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl">حفظ المهمة</button>
           <button type="button" onclick="resetTaskForm()" class="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 rounded-xl font-bold">جديد</button>
@@ -861,11 +864,12 @@ body{font-family:'Cairo',sans-serif;background:#f8fafc}
       <div class="flex flex-wrap items-center justify-between gap-3 pb-3 mb-4 border-b border-slate-100">
         <h3 class="text-sm font-bold">قائمة المهام</h3>
         <div class="flex flex-wrap gap-2 items-center">
-          <button type="button" id="tk-gcal-btn" onclick="connectGcal()" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 rounded-xl text-xs font-bold"><i class="fa-brands fa-google text-rose-500"></i> <span id="tk-gcal-label">ربط تقويم جوجل</span></button>
+          <button type="button" id="tk-gcal-btn" data-admin onclick="connectGcal()" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 rounded-xl text-xs font-bold"><i class="fa-brands fa-google text-rose-500"></i> <span id="tk-gcal-label">ربط تقويم جوجل</span></button>
           <button type="button" id="tk-gcal-off" onclick="disconnectGcal()" class="hidden px-2 py-1.5 text-slate-500 hover:text-rose-600 text-xs" title="فصل التقويم"><i class="fa-solid fa-link-slash"></i></button>
           <select id="tk-filter" class="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs">
             <option value="open">المفتوحة</option><option value="late">المتأخرة</option><option value="done">المنتهية</option><option value="all">الكل</option></select>
-          <select id="tk-src" class="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs">
+          <select id="tk-who" data-admin class="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs"></select>
+          <select id="tk-src" data-admin class="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs">
             <option value="all">كل المصادر</option><option value="task">مهامي</option><option value="req">طلبات المشرفين</option><option value="gcal">تقويم جوجل</option></select>
           <input type="text" id="tk-search" placeholder="بحث..." class="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs w-32">
         </div>
@@ -1234,6 +1238,7 @@ function startApp() {
     listen(collection(db, 'stationeryAuth'), d => S.sAuth = d);
     listen(collection(db, 'stationeryIssues'), d => S.sIss = d);
   }
+  if (P.role !== 'admin' && P.modules.includes('tasks')) listen(query(collection(db, 'tasks'), where('assignees', 'array-contains', P.uid)), d => S.tasks = d);
   if (P.role !== 'admin' && P.modules.includes('cars')) listen(collection(db, 'carsFiles'), d => S.carsFiles = d);
 
   const allowed = TABS.filter(t => t.roles.includes(P.role));
@@ -1262,7 +1267,7 @@ const MODULES = [
   { key: 'cars',        label: 'خطوط سير نقل الموظفين',         icon: 'fa-car',                grad: 'from-indigo-400 to-indigo-600', ready: true },
   { key: 'buffet',      label: 'البوفيه',          icon: 'fa-mug-hot',            grad: 'from-rose-400 to-rose-600',     ready: true },
   { key: 'stationery',  label: 'الأدوات المكتبية', icon: 'fa-pen-ruler',          grad: 'from-teal-400 to-teal-600',     ready: true },
-  { key: 'tasks',       label: 'المهام',           icon: 'fa-list-check',         grad: 'from-fuchsia-400 to-fuchsia-600', ready: true, adminOnly: true },
+  { key: 'tasks',       label: 'المهام',           icon: 'fa-list-check',         grad: 'from-fuchsia-400 to-fuchsia-600', ready: true },
   { key: 'maintenance', label: 'الصيانة',          icon: 'fa-screwdriver-wrench', grad: 'from-amber-400 to-amber-600',   ready: false },
   { key: 'users',       label: 'إدارة المستخدمين', icon: 'fa-users-gear',         grad: 'from-violet-500 to-violet-700', ready: true, adminOnly: true },
 ];
@@ -1306,7 +1311,7 @@ window.openModule = key => {
   hideAllModules(); $('home-screen').classList.add('hidden');
   currentModule = key;
   $('module-' + key).classList.remove('hidden');
-  if (key === 'tasks') { window.resetTaskForm(); if (GOOGLE_CLIENT_ID && gRestore() && !S.gcal.length) loadGcalEvents(); gcalUpdateUI(); }
+  if (key === 'tasks') { setupTasksUI(); window.resetTaskForm(); if (isAdmin() && GOOGLE_CLIENT_ID && gRestore() && !S.gcal.length) loadGcalEvents(); if (isAdmin()) gcalUpdateUI(); }
   if (key === 'stationery') { setupStationeryUI(); window.switchStTab('stock'); }
   if (key === 'buffet') { setupBuffetUI(); window.switchBfTab('stock'); }
   if (key === 'cars') { loadCarsFrame(); window.switchCarsTab('main'); }
@@ -2697,15 +2702,38 @@ S.tasks = [];
 const tkToday = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
 function tkItems() {
   const today = tkToday();
-  const mine = S.tasks.filter(t => !t.id.startsWith('gcal_')).map(t => ({ kind: 'task', id: t.id, title: t.title, notes: t.notes || '', due: t.due || '', done: !!t.done, doneAt: t.doneAt, raw: t }));
+  const mine = S.tasks.filter(t => !t.id.startsWith('gcal_')).map(t => ({ kind: 'task', id: t.id, title: t.title, notes: t.notes || '', due: t.due || '', done: !!t.done, doneAt: t.doneAt, assignees: t.assignees || [], doneByName: t.doneByName || '', raw: t }));
   // طلبات المشرفين: تظهر كمهمة مفتوحة حتى يتم اعتمادها أو رفضها
-  const reqs = S.reqs.map(r => ({ kind: 'req', id: r.id, title: `${r.type} — ${r.aptNumber} (${fmt(r.amount)} ج.م)`, notes: r.description || '', due: r.date || '', done: r.status !== 'قيد الانتظار', status: r.status, by: r.createdByName, raw: r }));
+  const reqs = !isAdmin() ? [] : S.reqs.map(r => ({ kind: 'req', id: r.id, title: `${r.type} — ${r.aptNumber} (${fmt(r.amount)} ج.م)`, notes: r.description || '', due: r.date || '', done: r.status !== 'قيد الانتظار', status: r.status, by: r.createdByName, raw: r }));
   const gdone = new Set(S.tasks.filter(t => t.id.startsWith('gcal_') && t.done).map(t => t.id));
-  const gev = (S.gcal || []).map(ev => ({ kind: 'gcal', id: ev.id, title: ev.title, notes: ev.notes, due: ev.due, time: ev.time, link: ev.link, cal: ev.cal, isTask: ev.isTask, done: !!ev.gdone || gdone.has('gcal_' + ev.id) }));
+  const gev = !isAdmin() ? [] : (S.gcal || []).map(ev => ({ kind: 'gcal', id: ev.id, title: ev.title, notes: ev.notes, due: ev.due, time: ev.time, link: ev.link, cal: ev.cal, isTask: ev.isTask, done: !!ev.gdone || gdone.has('gcal_' + ev.id) }));
   return mine.concat(reqs, gev).map(x => ({ ...x, late: !x.done && x.due && x.due < today, today: !x.done && x.due === today }));
+}
+const tkUserName = uid => { const u = S.users.find(x => x.id === uid); return u ? u.name : 'مستخدم محذوف'; };
+const tkWhoOk = x => { const w = $('tk-who').value; if (!isAdmin() || !w || w === 'all') return true; if (x.kind !== 'task') return w === 'admin';
+  return w === 'admin' ? !(x.assignees || []).length : (x.assignees || []).includes(w); };
+const tkEligibleUsers = () => S.users.filter(u => u.role !== 'admin' && normModules(u).includes('tasks')).sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+function renderTkAssignees(sel) {
+  const keep = sel || [...$('tk-assignees').querySelectorAll('input:checked')].map(i => i.value);
+  const us = tkEligibleUsers();
+  $('tk-assignees').innerHTML = us.map(u => `<label class="flex items-center gap-2 p-1 rounded hover:bg-white cursor-pointer"><input type="checkbox" value="${u.id}" ${keep.includes(u.id) ? 'checked' : ''}> ${esc(u.name)}</label>`).join('')
+    || '<p class="text-[11px] text-slate-400 p-1">لا يوجد مستخدمون معهم قسم "المهام". امنحه لهم من إدارة المستخدمين.</p>';
+}
+function renderTkWho() {
+  const sel = $('tk-who'), cur = sel.value;
+  sel.innerHTML = `<option value="all">كل المستخدمين</option><option value="admin">لي فقط</option>` + tkEligibleUsers().map(u => `<option value="${u.id}">${esc(u.name)}</option>`).join('');
+  sel.value = [...sel.options].some(o => o.value === cur) ? cur : 'all';
+}
+function setupTasksUI() {
+  const adm = isAdmin();
+  document.querySelectorAll('#module-tasks [data-admin]').forEach(el => el.classList.toggle('hidden', !adm));
+  $('tk-form-card').classList.toggle('hidden', !adm);
+  $('tk-list').parentElement.classList.toggle('lg:col-span-8', adm); $('tk-list').parentElement.classList.toggle('lg:col-span-12', !adm);
+  if (!adm) $('tk-gcal-btn').classList.add('hidden');
 }
 function renderTasks() {
   if (!P || currentModule !== 'tasks') return;
+  if (isAdmin()) { renderTkWho(); if (!$('tk-id').value) renderTkAssignees(); }
   const all = tkItems();
   $('tk-k-open').textContent = all.filter(x => !x.done).length;
   $('tk-k-late').textContent = all.filter(x => x.late).length;
@@ -2713,7 +2741,7 @@ function renderTasks() {
   $('tk-k-done').textContent = all.filter(x => x.done).length;
   const f = $('tk-filter').value, src = $('tk-src').value, q = $('tk-search').value.trim().toLowerCase();
   const rows = all.filter(x => (f === 'all' || (f === 'open' && !x.done) || (f === 'late' && x.late) || (f === 'done' && x.done))
-    && (src === 'all' || x.kind === src) && (!q || (x.title + ' ' + x.notes).toLowerCase().includes(q)))
+    && (src === 'all' || x.kind === src) && tkWhoOk(x) && (!q || (x.title + ' ' + x.notes).toLowerCase().includes(q)))
     .sort((a, b) => (a.done - b.done) || (a.due || '9999').localeCompare(b.due || '9999') || (a.time || '').localeCompare(b.time || ''));
   $('tk-list').innerHTML = rows.map(x => {
     const dueCls = x.late ? 'bg-rose-100 text-rose-700' : x.today ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600';
@@ -2723,8 +2751,8 @@ function renderTasks() {
     const actions = x.kind === 'gcal'
       ? (x.link ? `<a href="${esc(x.link)}" target="_blank" rel="noopener noreferrer" class="px-2 py-1 bg-sky-50 text-sky-700 hover:bg-sky-100 rounded text-[10px] font-bold" title="فتح في تقويم جوجل"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : '')
       : x.kind === 'task'
-      ? `<button onclick="editTask('${x.id}')" class="px-2 py-1 bg-sky-50 text-sky-700 hover:bg-sky-100 rounded text-[10px] font-bold"><i class="fa-solid fa-pen"></i></button>
-         <button onclick="deleteTask('${x.id}')" class="px-2 py-1 text-rose-600 hover:bg-rose-50 rounded text-[10px]"><i class="fa-solid fa-trash"></i></button>`
+      ? (isAdmin() ? `<button onclick="editTask('${x.id}')" class="px-2 py-1 bg-sky-50 text-sky-700 hover:bg-sky-100 rounded text-[10px] font-bold"><i class="fa-solid fa-pen"></i></button>
+         <button onclick="deleteTask('${x.id}')" class="px-2 py-1 text-rose-600 hover:bg-rose-50 rounded text-[10px]"><i class="fa-solid fa-trash"></i></button>` : '')
       : `${x.raw.attachment ? `<button onclick="openAttachment('${x.id}')" class="px-2 py-1 bg-sky-50 text-sky-700 hover:bg-sky-100 rounded font-bold text-[10px]"><i class="fa-solid fa-paperclip"></i></button>` : ''}
          ${!x.done ? `<button onclick="setReqStatus('${x.id}','معتمد')" class="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-bold text-[10px]">اعتماد</button>
          <button onclick="setReqStatus('${x.id}','مرفوض')" class="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded font-bold text-[10px]">رفض</button>` : `<span class="text-[10px] font-bold ${x.status === 'معتمد' ? 'text-emerald-700' : 'text-rose-600'}">${esc(x.status)}</span>`}`;
@@ -2734,6 +2762,8 @@ function renderTasks() {
         <div class="font-bold text-sm ${x.kind !== 'req' && x.done ? 'line-through text-slate-400' : ''}">${esc(x.title)}</div>
         ${x.notes ? `<div class="text-[11px] text-slate-500 mt-0.5">${esc(x.notes)}</div>` : ''}
         <div class="flex flex-wrap items-center gap-2 mt-1.5 text-[10px]">
+          ${x.kind === 'task' && isAdmin() ? `<span class="px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 font-bold"><i class="fa-solid fa-user"></i> ${(x.assignees || []).length ? esc(x.assignees.map(tkUserName).join('، ')) : 'لي فقط'}</span>` : ''}
+          ${x.kind === 'task' && x.done && x.doneByName ? `<span class="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold"><i class="fa-solid fa-check"></i> تم بواسطة ${esc(x.doneByName)}</span>` : ''}
           ${x.kind === 'gcal' ? `<span class="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 font-bold"><i class="fa-brands fa-google"></i> ${x.isTask ? 'مهمة جوجل' : 'تقويم جوجل'}${x.cal ? ': ' + esc(x.cal) : ''}</span>` : ''}
           ${x.kind === 'req' ? `<span class="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 font-bold"><i class="fa-solid fa-receipt"></i> طلب من مشرف${x.by ? ': ' + esc(x.by) : ''}</span>` : ''}
           <span class="px-1.5 py-0.5 rounded font-bold ${dueCls}"><i class="fa-regular fa-calendar"></i> ${esc(x.due || 'بدون تاريخ')}${x.time ? ' ' + esc(x.time) : ''}${x.late ? ' — متأخرة' : x.today ? ' — اليوم' : ''}</span>
@@ -2742,11 +2772,11 @@ function renderTasks() {
   }).join('') || `<p class="p-8 text-center text-slate-400 text-xs">لا توجد مهام</p>`;
 }
 ['tk-filter', 'tk-src'].forEach(id => $(id).addEventListener('change', renderTasks));
-$('tk-search').addEventListener('input', renderTasks);
-window.resetTaskForm = () => { $('tk-form').reset(); $('tk-id').value = ''; $('tk-due').value = tkToday(); $('tk-form-title').textContent = 'إضافة مهمة'; };
+$('tk-search').addEventListener('input', renderTasks); $('tk-who').addEventListener('change', renderTasks);
+window.resetTaskForm = () => { $('tk-form').reset(); $('tk-id').value = ''; if (isAdmin()) renderTkAssignees([]); $('tk-due').value = tkToday(); $('tk-form-title').textContent = 'إضافة مهمة'; };
 window.editTask = id => {
   const t = S.tasks.find(x => x.id === id); if (!t) return;
-  $('tk-id').value = t.id; $('tk-title').value = t.title; $('tk-due').value = t.due || ''; $('tk-notes').value = t.notes || '';
+  $('tk-id').value = t.id; $('tk-title').value = t.title; $('tk-due').value = t.due || ''; $('tk-notes').value = t.notes || ''; renderTkAssignees(t.assignees || []);
   $('tk-form-title').textContent = 'تعديل مهمة'; window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 $('tk-form').addEventListener('submit', async e => {
@@ -2755,12 +2785,13 @@ $('tk-form').addEventListener('submit', async e => {
   try {
     const ref = id ? doc(db, 'tasks', id) : doc(collection(db, 'tasks'));
     await setDoc(ref, { title: $('tk-title').value.trim(), due: $('tk-due').value, notes: $('tk-notes').value.trim(),
-      done: old ? !!old.done : false, doneAt: old && old.doneAt ? old.doneAt : 0, createdAt: old ? old.createdAt : Date.now(), createdBy: old ? old.createdBy : P.uid });
+      assignees: [...$('tk-assignees').querySelectorAll('input:checked')].map(i => i.value),
+      done: old ? !!old.done : false, doneAt: old && old.doneAt ? old.doneAt : 0, doneByName: old && old.doneByName ? old.doneByName : '', createdAt: old ? old.createdAt : Date.now(), createdBy: old ? old.createdBy : P.uid });
     toast(id ? 'تم تعديل المهمة' : 'تمت إضافة المهمة', 'success'); window.resetTaskForm();
   } catch (err) { toast(errMsg(err), 'error'); }
 });
 window.toggleTask = async (id, done) => {
-  try { await updateDoc(doc(db, 'tasks', id), { done, doneAt: done ? Date.now() : 0 }); } catch (err) { toast(errMsg(err), 'error'); }
+  try { await updateDoc(doc(db, 'tasks', id), { done, doneAt: done ? Date.now() : 0, doneByName: done ? P.name : '' }); } catch (err) { toast(errMsg(err), 'error'); }
 };
 /* --- ربط تقويم جوجل (قراءة فقط): الأحداث تظهر كمهام ويمكن تعليمها منتهية داخل الموقع --- */
 S.gcal = [];
