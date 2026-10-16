@@ -908,15 +908,15 @@ body{font-family:'Cairo',sans-serif;background:#f8fafc}
           <div>
             <label class="block font-bold mb-1">مستوى الصلاحية <span class="text-rose-500">*</span></label>
             <select id="new-user-role" required class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl">
-              <option value="supervisor">مشرف — يرى شقته فقط (بدون الإيجار) ويرفع الطلبات</option>
-              <option value="viewer">مشاهدة فقط — يرى كل التقرير بدون الإيجار</option>
-              <option value="admin">مدير النظام — كل الصلاحيات</option>
+              <option value="viewer">مستخدم — أحدد له الأقسام المسموحة</option>
+              <option value="supervisor">مشرف شقة — داخل قسم الشقق فقط (شقته فقط)</option>
+              <option value="admin">مدير نظام — كل الصلاحيات</option>
             </select>
           </div>
-          <div>
+          <div id="new-user-modules-wrap">
             <label class="block font-bold mb-1">الأقسام المسموح له بدخولها <span class="text-rose-500">*</span></label>
             <div id="new-user-modules" class="border border-slate-300 rounded-xl bg-slate-50 p-2 space-y-1"></div>
-            <p id="new-user-modules-note" class="hidden text-[11px] text-slate-500 mt-1">مدير النظام يصل لكل الأقسام تلقائياً.</p>
+            <p id="new-user-modules-note" class="hidden text-[11px] text-slate-500 mt-1"></p>
           </div>
           <div id="new-user-apts-box">
             <label class="block font-bold mb-1">الشقق التي سيشرف عليها <span class="text-rose-500">*</span></label>
@@ -1022,15 +1022,15 @@ body{font-family:'Cairo',sans-serif;background:#f8fafc}
     <div>
       <label class="block font-bold mb-1">مستوى الصلاحية</label>
       <select id="perm-role" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl">
-        <option value="supervisor">مشرف — يرى شقته فقط (بدون الإيجار) ويرفع الطلبات</option>
-        <option value="viewer">مشاهدة فقط — يرى كل التقرير بدون الإيجار</option>
-        <option value="admin">مدير النظام — كل الصلاحيات</option>
+        <option value="viewer">مستخدم — أحدد له الأقسام المسموحة</option>
+        <option value="supervisor">مشرف شقة — داخل قسم الشقق فقط (شقته فقط)</option>
+        <option value="admin">مدير نظام — كل الصلاحيات</option>
       </select>
     </div>
-    <div>
+    <div id="perm-modules-wrap">
       <label class="block font-bold mb-1">الأقسام المسموح له بدخولها</label>
       <div id="perm-modules" class="border border-slate-200 rounded-xl bg-slate-50 p-2 space-y-1"></div>
-      <p id="perm-modules-note" class="hidden text-[11px] text-slate-500 mt-1">مدير النظام يصل لكل الأقسام تلقائياً.</p>
+      <p id="perm-modules-note" class="hidden text-[11px] text-slate-500 mt-1"></p>
     </div>
     <div id="perm-apts-box">
       <label class="block font-bold mb-1">الشقق التي يشرف عليها</label>
@@ -1083,7 +1083,7 @@ let S = { apts: [], fin: {}, emps: [], reqs: [], users: [], docs: [], carsFiles:
 let unsubs = [];
 let currentTab = null;
 
-const ROLE_LABEL = { admin: 'مدير النظام', supervisor: 'مشرف', viewer: 'مشاهدة' };
+const ROLE_LABEL = { admin: 'مدير نظام', supervisor: 'مشرف شقة', viewer: 'مستخدم' };
 const TABS = [
   { key: 'allocation',  label: 'التسكين وإدخال الموظفين', icon: 'fa-user-plus',   roles: ['admin'] },
   { key: 'report',      label: 'تقرير توزيع الشقق',       icon: 'fa-table-cells', roles: ['admin','supervisor','viewer'] },
@@ -1275,6 +1275,7 @@ const MODULES = [
 const grantableKeys = () => MODULES.filter(m => !m.adminOnly).map(m => m.key);
 function normModules(d) {
   if (d.role === 'admin') return grantableKeys();
+  if (d.role === 'supervisor') return ['housing'];   // مشرف الشقة: قسم الشقق فقط
   return Array.isArray(d.modules) ? d.modules : ['housing'];
 }
 const canSee = m => m.adminOnly ? P.role === 'admin' : (P.role === 'admin' || P.modules.includes(m.key));
@@ -1705,7 +1706,7 @@ function renderUsers() {
     const modChips = u.role === 'admin' ? '<span class="text-slate-500">كل الأقسام</span>'
       : (mods.map(k => { const m = MODULES.find(x => x.key === k); return m ? `<span class="inline-block bg-sky-50 text-sky-800 rounded px-1.5 py-0.5 m-0.5">${esc(m.label)}</span>` : ''; }).join('') || '<span class="text-rose-500">لا يوجد</span>');
     const aptCell = u.role === 'admin' ? '<span class="text-slate-400">كل الشقق</span>'
-      : u.role === 'viewer' ? '<span class="text-slate-400">عرض كل الشقق</span>'
+      : u.role === 'viewer' ? '<span class="text-slate-400">تقرير الشقق (قراءة فقط)</span>'
       : (S.apts.filter(a => a.supervisorUid === u.id).map(a => `<span class="inline-block bg-slate-100 rounded px-1.5 py-0.5 m-0.5">${esc(a.number)}</span>`).join('') || '<span class="text-rose-500">لا توجد شقق</span>');
     return `<tr class="hover:bg-slate-50">
       <td class="p-3 font-bold">${esc(u.name)} ${me ? '<span class="text-[10px] text-slate-400">(أنت)</span>' : ''}</td>
@@ -1722,9 +1723,9 @@ function renderUsers() {
 $('add-user-form').addEventListener('submit', async e => {
   e.preventDefault();
   const name = $('new-user-name').value.trim(), email = $('new-user-email').value.trim().toLowerCase(), pass = $('new-user-pass').value, role = $('new-user-role').value;
-  const modules = role === 'admin' ? grantableKeys() : [...document.querySelectorAll('#new-user-modules input:checked')].map(i => i.value);
+  const modules = role === 'admin' ? grantableKeys() : role === 'supervisor' ? ['housing'] : [...document.querySelectorAll('#new-user-modules input:checked')].map(i => i.value);
   if (!modules.length) return toast('اختر قسماً واحداً على الأقل', 'warning');
-  const needApts = role === 'supervisor' && modules.includes('housing');
+  const needApts = role === 'supervisor';
   const aptIds = needApts ? [...document.querySelectorAll('#new-user-apts input:checked')].map(i => i.value) : [];
   if (needApts && !aptIds.length) return toast('اختر شقة واحدة على الأقل للمشرف', 'warning');
   const btn = $('add-user-btn'); btn.disabled = true;
@@ -1818,9 +1819,11 @@ function toggleNewUserApts() {
   const role = $('new-user-role').value;
   const boxes = $('new-user-modules').querySelectorAll('input');
   boxes.forEach(i => { if (role === 'admin') i.checked = true; i.disabled = role === 'admin'; });
-  const mods = [...boxes].filter(i => i.checked).map(i => i.value);
-  $('new-user-modules-note').classList.toggle('hidden', role !== 'admin');
-  $('new-user-apts-box').classList.toggle('hidden', !(role === 'supervisor' && mods.includes('housing')));
+  $('new-user-modules-wrap').classList.toggle('hidden', role === 'supervisor');
+  const note = $('new-user-modules-note');
+  note.textContent = role === 'admin' ? 'مدير النظام يصل لكل الأقسام تلقائياً.' : 'داخل قسم الشقق يشاهد المستخدم تقرير الشقق (قراءة فقط). باقي الأقسام يستخدمها حسب صلاحيات القسم نفسه.';
+  note.classList.toggle('hidden', role === 'supervisor');
+  $('new-user-apts-box').classList.toggle('hidden', role !== 'supervisor');
 }
 $('new-user-role').addEventListener('change', toggleNewUserApts);
 $('new-user-modules').addEventListener('change', toggleNewUserApts);
@@ -1841,9 +1844,11 @@ function updatePermsUi() {
   const role = $('perm-role').value;
   const boxes = $('perm-modules').querySelectorAll('input');
   boxes.forEach(i => { if (role === 'admin') i.checked = true; i.disabled = role === 'admin'; });
-  const mods = [...boxes].filter(i => i.checked).map(i => i.value);
-  $('perm-modules-note').classList.toggle('hidden', role !== 'admin');
-  $('perm-apts-box').classList.toggle('hidden', !(role === 'supervisor' && mods.includes('housing')));
+  $('perm-modules-wrap').classList.toggle('hidden', role === 'supervisor');
+  const note = $('perm-modules-note');
+  note.textContent = role === 'admin' ? 'مدير النظام يصل لكل الأقسام تلقائياً.' : 'داخل قسم الشقق يشاهد المستخدم تقرير الشقق (قراءة فقط).';
+  note.classList.toggle('hidden', role === 'supervisor');
+  $('perm-apts-box').classList.toggle('hidden', role !== 'supervisor');
 }
 $('modal-perms').addEventListener('change', updatePermsUi);
 window.openPerms = uid => {
@@ -1859,9 +1864,9 @@ window.closePerms = () => { $('modal-perms').classList.add('hidden'); permUid = 
 window.savePerms = async () => {
   const u = S.users.find(x => x.id === permUid); if (!u) return;
   const role = $('perm-role').value;
-  const modules = role === 'admin' ? grantableKeys() : [...document.querySelectorAll('#perm-modules input:checked')].map(i => i.value);
+  const modules = role === 'admin' ? grantableKeys() : role === 'supervisor' ? ['housing'] : [...document.querySelectorAll('#perm-modules input:checked')].map(i => i.value);
   if (!modules.length) return toast('اختر قسماً واحداً على الأقل', 'warning');
-  const useApts = role === 'supervisor' && modules.includes('housing');
+  const useApts = role === 'supervisor';
   const ids = useApts ? [...document.querySelectorAll('#perm-apts input:checked')].map(i => i.value) : [];
   if (useApts && !ids.length) return toast('اختر شقة واحدة على الأقل للمشرف', 'warning');
   try {
